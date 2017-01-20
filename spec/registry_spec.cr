@@ -13,6 +13,11 @@ describe Crometheus::Registry do
       registry.register(collection2)
       registry.collections.should eq [collection1, collection2]
     end
+
+    it "enforces unique collection names" do
+      collection_dupe = Crometheus::Collection(Crometheus::Metric).new(:metric2, "docstring3", nil)
+      expect_raises {registry.register(collection_dupe)}
+    end
   end
 
   describe "#forget" do

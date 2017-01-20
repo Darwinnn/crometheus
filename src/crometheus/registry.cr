@@ -9,6 +9,9 @@ module Crometheus
     @server_on = false
 
     def register(collection)
+      if @collections.find {|coll| coll.name == collection.name}
+        raise Exception.new "Registered collections must have unique names"
+      end
       @collections << collection
       @collections.sort_by! {|coll| coll.name}
     end

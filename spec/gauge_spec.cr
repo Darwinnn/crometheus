@@ -1,5 +1,6 @@
 require "./spec_helper"
 require "../src/crometheus/collection"
+require "../src/crometheus/gauge"
 
 describe "Crometheus::Collection(Crometheus::Gauge)" do
   gauge = Crometheus::Collection(Crometheus::Gauge).new(:my_gauge1, "First gauge description")
