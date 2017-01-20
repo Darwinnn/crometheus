@@ -26,11 +26,17 @@ module Crometheus
       set Time.now.epoch_f
     end
 
-    def measure
+    def measure_runtime
       t0 = Time.now
       yield
       t1 = Time.now
       set((t1 - t0).to_f)
+    end
+
+    def count_concurrent
+      inc
+      yield
+      dec
     end
 
     def type
