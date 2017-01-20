@@ -1,10 +1,10 @@
+module Crometheus
 # Base class for individual metrics.
-# You want to instantiate Collection(T), not this.
-# See the Gauge, Histrogram, and Summary classes for examples of how to
-# subclass a Metric.
+# You want to instantiate `Collection`(T), not this.
+# See the `Gauge`, `Histogram`, and `Summary` classes for examples of
+# how to subclass a Metric.
 # But the short version is: override get() to either return an instance
 # variable or calculate some value dynamically.
-module Crometheus
   class Metric
     @name : Symbol
     @labels : Hash(Symbol, String)

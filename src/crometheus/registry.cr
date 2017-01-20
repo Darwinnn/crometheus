@@ -3,7 +3,7 @@ require "./collection"
 
 module Crometheus
   class Registry
-    property collections = [] of Crometheus::CollectionBase
+    property collections = [] of CollectionBase
     property host = "localhost", port = 9027
     @server : HTTP::Server? = nil
     @server_on = false
