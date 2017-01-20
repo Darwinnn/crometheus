@@ -4,6 +4,12 @@ require "./metric"
 
 module Crometheus
   class Gauge < Metric
+    @value : Float64 = 0.0
+
+    def get
+      @value
+    end
+
     def set(x : Int | Float)
       @value = x.to_f64
     end

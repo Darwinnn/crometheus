@@ -2,9 +2,10 @@
 # You want to instantiate Collection(T), not this.
 # See the Gauge, Histrogram, and Summary classes for examples of how to
 # subclass a Metric.
+# But the short version is: override get() to either return an instance
+# variable or calculate some value dynamically.
 module Crometheus
   class Metric
-    @value : Float64 = 0.0
     @name : Symbol
     @labels : Hash(Symbol, String)
 
@@ -14,8 +15,8 @@ module Crometheus
       end
     end
 
-    def get
-      @value
+    def get : Float64
+      0.0
     end
 
     def to_s(io)
@@ -23,7 +24,7 @@ module Crometheus
       unless @labels.empty?
         io << '{' << @labels.map{|k,v| "#{k}=\"#{v}\""}.join(", ") << '}'
       end
-      io << ' ' << @value << '\n'
+      io << ' ' << get << '\n'
     end
 
     # Validates a label set for this metric type
