@@ -1,6 +1,6 @@
 module Crometheus
 # Base class for individual metrics.
-# You want to instantiate `Collection`(T), not this.
+# You want to instantiate `Collector`(T), not this.
 # See the `Gauge`, `Histogram`, and `Summary` classes for examples of
 # how to subclass a Metric.
 # But the short version is: override get() to either return an instance

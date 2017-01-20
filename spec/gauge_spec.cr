@@ -1,9 +1,9 @@
 require "./spec_helper"
-require "../src/crometheus/collection"
+require "../src/crometheus/collector"
 require "../src/crometheus/gauge"
 
-describe "Crometheus::Collection(Crometheus::Gauge)" do
-  gauge = Crometheus::Collection(Crometheus::Gauge).new(:my_gauge1, "First gauge description")
+describe "Crometheus::Collector(Crometheus::Gauge)" do
+  gauge = Crometheus::Collector(Crometheus::Gauge).new(:my_gauge1, "First gauge description")
 
   it "defaults new gauges to 0.0" do
     gauge.get.should eq 0.0
@@ -87,7 +87,7 @@ describe "Crometheus::Collection(Crometheus::Gauge)" do
 
   describe "#to_s" do
     it "appends a self-summary to the passed IO object" do
-      gauge = Crometheus::Collection(Crometheus::Gauge).new(:my_gaugen, "Nth gauge description")
+      gauge = Crometheus::Collector(Crometheus::Gauge).new(:my_gaugen, "Nth gauge description")
       gauge.set(10.0)
       gauge.labels(mylabel: "foo").set 3.14e+42
       gauge.labels(mylabel: "bar", otherlabel: "baz").set -1.23e-45

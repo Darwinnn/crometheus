@@ -1,30 +1,30 @@
 require "http/server"
-require "./collection"
+require "./collector"
 
 module Crometheus
   class Registry
-    property collections = [] of CollectionBase
+    property collectors = [] of CollectorBase
     property host = "localhost", port = 9027
     @server : HTTP::Server? = nil
     @server_on = false
 
-    def register(collection)
-      if @collections.find {|coll| coll.name == collection.name}
-        raise Exception.new "Registered collections must have unique names"
+    def register(collector)
+      if @collectors.find {|coll| coll.name == collector.name}
+        raise Exception.new "Registered collectors must have unique names"
       end
-      @collections << collection
-      @collections.sort_by! {|coll| coll.name}
+      @collectors << collector
+      @collectors.sort_by! {|coll| coll.name}
     end
 
-    def forget(collection)
-      @collections.delete(collection)
+    def forget(collector)
+      @collectors.delete(collector)
     end
 
     def start_server
       return false if @server && @server_on
       @server = server = HTTP::Server.new(@host, @port) do |context|
         context.response.content_type = "text/plain; version=0.0.4"
-        @collections.each do |coll|
+        @collectors.each do |coll|
           context.response << coll
         end
       end

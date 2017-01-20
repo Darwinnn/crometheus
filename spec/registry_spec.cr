@@ -1,33 +1,33 @@
 require "./spec_helper"
 require "../src/crometheus/registry"
-require "../src/crometheus/collection"
+require "../src/crometheus/collector"
 
 describe Crometheus::Registry do
   registry = Crometheus::Registry.new
-  collection1 = Crometheus::Collection(Crometheus::Metric).new(:metric1, "docstring1", nil)
-  collection2 = Crometheus::Collection(Crometheus::Metric).new(:metric2, "docstring2", nil)
+  collector1 = Crometheus::Collector(Crometheus::Metric).new(:metric1, "docstring1", nil)
+  collector2 = Crometheus::Collector(Crometheus::Metric).new(:metric2, "docstring2", nil)
 
   describe "#register" do
-    it "ingests collections passed to it" do
-      registry.register(collection1)
-      registry.register(collection2)
-      registry.collections.should eq [collection1, collection2]
+    it "ingests collectors passed to it" do
+      registry.register(collector1)
+      registry.register(collector2)
+      registry.collectors.should eq [collector1, collector2]
     end
 
-    it "enforces unique collection names" do
-      collection_dupe = Crometheus::Collection(Crometheus::Metric).new(:metric2, "docstring3", nil)
-      expect_raises {registry.register(collection_dupe)}
+    it "enforces unique collector names" do
+      collector_dupe = Crometheus::Collector(Crometheus::Metric).new(:metric2, "docstring3", nil)
+      expect_raises {registry.register(collector_dupe)}
     end
   end
 
   describe "#forget" do
-    it "deletes collections from the registry" do
-      registry.forget(collection1)
-      registry.collections.should eq [collection2]
+    it "deletes collectors from the registry" do
+      registry.forget(collector1)
+      registry.collectors.should eq [collector2]
     end
   end
 
-  registry.register(collection1)
+  registry.register(collector1)
 
   describe "#start_server and #stop_server" do
     it "serves metrics on the specified port" do

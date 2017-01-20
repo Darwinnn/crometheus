@@ -3,24 +3,24 @@ require "./registry"
 module Crometheus
 
   # Non-generic abstract base type, because this works:
-  #     [] of CollectionBase
+  #     [] of CollectorBase
   # But this gives an error:
-  #     [] of Collection
-  # "can't use Crometheus::Collection(T) as generic type argument yet,
+  #     [] of Collector
+  # "can't use Crometheus::Collector(T) as generic type argument yet,
   # use a more specific type".
-  private abstract class CollectionBase
+  private abstract class CollectorBase
     abstract def to_s(io)
   end
 
-  # A Collection is a grouping of one or more related metrics. These
+  # A Collector is a grouping of one or more related metrics. These
   # metrics all have the same name, but may have different sets of
   # labels. Each particular data point is defined by a unique labelset.
   # T must be a subclass of class `Metric`.
-  class Collection(T) < CollectionBase
+  class Collector(T) < CollectorBase
     property metric
     property name, docstring
 
-    # Creates a new Collection.
+    # Creates a new Collector.
     #
     def initialize(@name : Symbol, @docstring : String, registry : Crometheus::Registry? = Crometheus.registry)
       @metric = T.new(@name, {} of Symbol => String)

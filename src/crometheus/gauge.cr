@@ -1,5 +1,5 @@
 # A Gauge metric
-# You want to instantiate Collection(Gauge), not this.
+# You want to instantiate Collector(Gauge), not this.
 require "./metric"
 
 module Crometheus
