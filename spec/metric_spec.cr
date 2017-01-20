@@ -1,5 +1,5 @@
 require "./spec_helper"
-require "../src/crometheus"
+require "../src/crometheus/metric"
 
 describe Crometheus::Metric do
   describe ".valid_labels?" do
