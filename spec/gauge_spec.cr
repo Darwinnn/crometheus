@@ -72,8 +72,8 @@ describe "Crometheus::Collection(Crometheus::Gauge)" do
       gauge.labels(mylabel: "foo").set 3.14e+42
       gauge.labels(mylabel: "bar", otherlabel: "baz").set -1.23e-45
       gauge.to_s.should eq %<\
-# TYPE my_gaugen gauge
 # HELP my_gaugen Nth gauge description
+# TYPE my_gaugen gauge
 my_gaugen 10.0
 my_gaugen{mylabel="foo"} 3.14e+42
 my_gaugen{mylabel="bar", otherlabel="baz"} -1.23e-45

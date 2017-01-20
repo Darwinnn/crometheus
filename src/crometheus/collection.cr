@@ -1,14 +1,29 @@
 require "./gauge"
+require "./registry"
 
 module Crometheus
 
-  class Collection(T)
+  # Non-generic abstract base type, because this works:
+  # [] of CollectionBase
+  # But this gives an error:
+  # [] of Collection
+  # "can't use Crometheus::Collection(T) as generic type argument yet,
+  # use a more specific type".
+  abstract class CollectionBase
+    abstract def to_s(io)
+  end
+
+  class Collection(T) < CollectionBase
     property metric
     property name, docstring
 
-    def initialize(@name : Symbol, @docstring : String)
+    def initialize(@name : Symbol, @docstring : String, registry : Crometheus::Registry? = Crometheus.registry)
       @metric = T.new(@name, {} of Symbol => String)
       @children = {} of Hash(Symbol, String) => T
+
+      if registry
+        registry.register(self)
+      end
     end
 
     # Fetch or create a child metric with the given labelset
@@ -23,8 +38,8 @@ module Crometheus
     #~ end
 
     def to_s(io)
-      io << "# TYPE " << @name << " gauge\n"
       io << "# HELP " << @name << ' ' << @docstring << '\n'
+      io << "# TYPE " << @name << ' ' << @metric.type << '\n'
       io << @metric
       @children.values.each {|child| io << child}
       return io

@@ -19,6 +19,10 @@ module Crometheus
       0.0
     end
 
+    def type
+      "untyped"
+    end
+
     def to_s(io)
       io << @name
       unless @labels.empty?

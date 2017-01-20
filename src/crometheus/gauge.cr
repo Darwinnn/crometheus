@@ -33,5 +33,8 @@ module Crometheus
       set((t1 - t0).to_f)
     end
 
+    def type
+      "gauge"
+    end
   end
 end
