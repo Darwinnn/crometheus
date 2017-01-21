@@ -1,8 +1,12 @@
 require "./metric"
 
 module Crometheus
-  # A Metric type that stores a value internally. This value increases
-  # monotonically, except that it can be reset to zero.
+  # Counter is a `Metric` type that stores a single value internally.
+  # This value can be reset to zero, but otherwises increases
+  # monotonically, and only when #inc is called.
+  #
+  # Counter should generally not be instantiated directly. Instantiate
+  # `Collector`(Counter) instead.
   class Counter < Metric
     @value = 0.0
 
@@ -21,8 +25,27 @@ module Crometheus
       @value = 0.0
     end
 
-    # Increments @value when the block raises an exception.
-    def count_exceptions(ex_type = Exception)
+    # Yields the block, calling #inc if an exception is raised.
+    # The exception is always re-raised.
+    #
+    # Example:
+    # ```
+    # require "../src/crometheus/counter"
+    # require "../src/crometheus/collector"
+    # include Crometheus
+    # def unsafe_code
+    #   x = 1 / [1, 0].sample
+    # end
+    # counter = Collector(Counter).new :example, ""
+    # 100.times do
+    #   begin
+    #     counter.count_exceptions {unsafe_code}
+    #   rescue DivisionByZero
+    #   end
+    # end
+    # puts counter.get # approximately 50
+    # ```
+    def count_exceptions
       yield
     rescue ex
       inc
@@ -38,7 +61,7 @@ module Crometheus
     # https://github.com/crystal-lang/crystal/issues/2060 is resolved,
     # this macro will be deprecated and its functionality folded into
     # #count_exceptions.
-    macro count_exception_type(counter, ex_type)
+    macro count_exceptions_of_type(counter, ex_type)
       begin
         {{yield}}
       rescue ex : {{ex_type}}

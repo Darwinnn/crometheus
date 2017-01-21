@@ -1,11 +1,15 @@
-# A Gauge metric
-# You want to instantiate Collector(Gauge), not this.
 require "./metric"
 
 module Crometheus
+  # Gauge is a `Metric` type that stores a single value internally.
+  # This value can be modified arbitrarily via instance methods.
+  #
+  # Gauge should generally not be instantiated directly. Instantiate
+  # `Collector`(Gauge) instead.
   class Gauge < Metric
     @value : Float64 = 0.0
 
+    # Fetches @value.
     def get
       @value
     end

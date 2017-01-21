@@ -44,14 +44,14 @@ describe Crometheus::Collector(Crometheus::Counter) do
     end
   end
 
-  describe ".count_exception_type" do
+  describe ".count_exceptions_of_type" do
     it "increment when the block raises the given type of exception" do
       exceptions = [ArgumentError.new, KeyError.new, DivisionByZero.new,
         ArgumentError.new, ArgumentError.new]
       counter.reset
       exceptions.each do |ex|
         expect_raises do
-          Crometheus::Counter.count_exception_type(counter, ArgumentError) {raise ex}
+          Crometheus::Counter.count_exceptions_of_type(counter, ArgumentError) {raise ex}
         end
       end
       counter.get.should eq 3.0
