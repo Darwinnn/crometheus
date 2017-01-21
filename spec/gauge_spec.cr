@@ -55,14 +55,23 @@ describe "Crometheus::Collector(Crometheus::Gauge)" do
   describe "#set_to_current_time" do
     it "sets the gauge to the current UNIX timestamp" do
       gauge.set_to_current_time
-      assert {(1484901416..4102444800).includes? gauge.get}
+      (1484901416..4102444800).should contain gauge.get
     end
   end
 
   describe "#measure_runtime" do
     it "sets the gauge to the runtime of a block" do
       gauge.measure_runtime {sleep 0.4}
-      assert {(0.4..0.45).includes? gauge.get}
+      (0.4..0.45).should contain gauge.get
+    end
+
+    it "works even when exceptions are raised" do
+      gauge.set 0.0
+      expect_raises(CrometheusTestException) do
+        gauge.measure_runtime {sleep 0.2; raise CrometheusTestException.new}
+      end
+      (0.2..0.25).should contain gauge.get
+
     end
   end
 
@@ -82,6 +91,21 @@ describe "Crometheus::Collector(Crometheus::Gauge)" do
       gauge.get.should eq 1.0
       sleep 0.2
       gauge.get.should eq 0.0
+    end
+
+    it "works when exceptions are raised" do
+      gauge.set 0.0
+      spawn do
+        begin
+          gauge.count_concurrent {sleep 0.2; raise CrometheusTestException.new}
+        rescue ex : CrometheusTestException
+        end
+      end
+      sleep 0.1
+      gauge.get.should eq 1.0
+      sleep 0.2
+      gauge.get.should eq 0.0
+
     end
   end
 

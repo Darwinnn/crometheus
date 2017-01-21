@@ -1,2 +1,4 @@
 require "spec"
-#require "../src/crometheus"
+
+class CrometheusTestException < Exception
+end

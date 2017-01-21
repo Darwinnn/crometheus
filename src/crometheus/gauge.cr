@@ -32,14 +32,18 @@ module Crometheus
 
     def measure_runtime
       t0 = Time.now
-      yield
-      t1 = Time.now
-      set((t1 - t0).to_f)
+      begin
+        yield
+      ensure
+        t1 = Time.now
+        set((t1 - t0).to_f)
+      end
     end
 
     def count_concurrent
       inc
       yield
+    ensure
       dec
     end
 
