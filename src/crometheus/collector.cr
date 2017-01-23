@@ -26,26 +26,42 @@ module Crometheus
   # labels. Each particular data point is defined by a unique labelset.
   # T must be a subclass of class `Metric`.
   class Collector(T) < CollectorBase
+    # When Collector is initialized, a metric of type T is automatically
+    # instantiated. This is the default, unlabelled data series for this
+    # collector. Methods not defined on Collector will be forwarded to
+    # this metric automatically, so you don't generally need to
+    # call #metric - if c is a collector, c.get is equivalent to
+    # c.metric.get.
     property metric
     @children = {} of Hash(Symbol, String) => T
 
     # Creates a new Collector.
+    #
+    # name : The name of the collector. This will be converted to a
+    # String and used as the metric name when exporting to Prometheus.
+    # register_with : an optional Registry instance. By default, metrics
+    # register with the default Registry accessible with
+    # Crometheus.registry. Set this value to a different Registry or nil
+    # to override this behavior.
     def initialize(name : Symbol, docstring : String, register_with : Crometheus::Registry? = Crometheus.registry)
       super(name, docstring, register_with)
       @metric = T.new(@name, {} of Symbol => String)
     end
 
-    # Fetch or create a child metric with the given labelset
+    # Fetches a child metric with the given labelset, creating it with
+    # default values if necessary.
     def labels(**tuple)
       labelset = tuple.to_h
       return @children[labelset] ||= T.new(@name, labelset)
     end
+
+    # [] can be used as an alias for labels().
     def [](**tuple)
       labels(**tuple)
     end
 
-    # This is called by `Registry` to iterate over every sample in the
-    # collection.
+    # collect() is called by `Registry` to iterate over every sample in the
+    # collection. Users generally need not call it.
     def collect(&block : Sample -> Nil)
       @metric.samples {|ss| yield ss}
       @children.each_value do |metric|

@@ -1,6 +1,12 @@
 require "./metric"
 
 module Crometheus
+  # `Summary` is a metric type that keeps a running total of observations.
+  # Every time #observe is called, @sum is incremented by that amount,
+  # and @count is incremented by one.
+  #
+  # Summary should generally not be instantiated directly. Instantiate
+  # `Collector`(Summary) instead.
   class Summary < Metric
     @count = 0.0
     @sum = 0.0
