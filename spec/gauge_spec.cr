@@ -2,12 +2,11 @@ require "./spec_helper"
 require "../src/crometheus/collector"
 require "../src/crometheus/gauge"
 
-describe Crometheus::Collector(Crometheus::Gauge) do
-  gauge = Crometheus::Collector(Crometheus::Gauge).new(:gauge_spec, "First gauge description")
+describe Crometheus::Gauge do
+  gauge = Crometheus::Gauge.new(:gauge_spec)
 
   it "defaults new gauges to 0.0" do
     gauge.get.should eq 0.0
-    gauge.labels(mylabel: "foo").get.should eq 0.0
   end
 
   describe "#set and #get" do
@@ -18,17 +17,6 @@ describe Crometheus::Collector(Crometheus::Gauge) do
       gauge.get.should eq(24.0)
       gauge.set(25.0)
       gauge.get.should eq(25.0)
-    end
-  end
-
-  describe "#labels" do
-    it "sets and gets the metric value for a given label set" do
-      gauge.set 20.0
-      gauge.labels(mylabel: "foo").set 25.0
-      gauge.labels(mylabel: "bar").set 30.0
-      gauge.get.should eq 20.0
-      gauge.labels(mylabel: "foo").get.should eq 25.0
-      gauge.labels(mylabel: "bar").get.should eq 30.0
     end
   end
 
@@ -112,10 +100,11 @@ describe Crometheus::Collector(Crometheus::Gauge) do
   describe "#samples" do
     it "yields appropriate Samples" do
       gauge.set(10)
-      gauge.labels(foo: "bar").set(-20)
-
       gauge.samples.should eq [Crometheus::Sample.new(value: 10.0)]
-      gauge.labels(foo: "bar").samples.should eq [Crometheus::Sample.new(value: -20.0, labels: {:foo => "bar"})]
+
+      gauge2 = Crometheus::Gauge.new(:gauge_spec, {:foo => "bar"})
+      gauge2.set(-20)
+      gauge2.samples.should eq [Crometheus::Sample.new(value: -20.0, labels: {:foo => "bar"})]
     end
   end
 end

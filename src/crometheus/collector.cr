@@ -40,15 +40,13 @@ module Crometheus
       labelset = tuple.to_h
       return @children[labelset] ||= T.new(@name, labelset)
     end
-
-    # pending https://github.com/crystal-lang/crystal/issues/3918
-    #~ def [](**tuple)
-      #~ labels(**tuple)
-    #~ end
+    def [](**tuple)
+      labels(**tuple)
+    end
 
     # This is called by `Registry` to iterate over every sample in the
     # collection.
-    protected def collect(&block : Sample -> Nil)
+    def collect(&block : Sample -> Nil)
       @metric.samples {|ss| yield ss}
       @children.each_value do |metric|
         metric.samples {|ss| yield ss}

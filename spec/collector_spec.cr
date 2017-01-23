@@ -4,28 +4,40 @@ require "../src/crometheus/gauge"
 require "../src/crometheus/sample"
 
 describe Crometheus::Collector(Crometheus::Gauge) do
-  gauge = Crometheus::Collector(Crometheus::Gauge).new(:foo, "bar")
-  it "automatically registers with the default registry" do
-    Crometheus.registry.collectors.first.should eq gauge
+  gauge_collector = Crometheus::Collector(Crometheus::Gauge).new(:foo, "bar")
+
+  describe ".new" do
+    it "automatically registers with the default registry" do
+      Crometheus.registry.collectors.first.should eq gauge_collector
+    end
+
+    it "registers with a registry passed to the constructor" do
+      registry = Crometheus::Registry.new
+      gauge_collector2 = Crometheus::Collector(Crometheus::Gauge).new(:baz, "quux", registry)
+      registry.collectors.should eq [gauge_collector2]
+      Crometheus.registry.collectors.should_not contain gauge_collector2
+    end
   end
 
-  it "registers with a registry passed to the constructor" do
-    registry = Crometheus::Registry.new
-    gauge2 = Crometheus::Collector(Crometheus::Gauge).new(:baz, "quux", registry)
-    registry.collectors.should eq [gauge2]
-    Crometheus.registry.collectors.should_not contain gauge2
+  describe "#labels" do
+    it "creates a new metric for each given label" do
+      gauge_collector.set 100
+      g1 = gauge_collector.labels(foo: "bar")
+      g1.get.should eq 0.0
+      g1.inc 20
+      gauge_collector.labels(foo: "bar").get.should eq 20.0
+      gauge_collector[foo: "bar"].should eq g1
+    end
   end
 
-  #~ describe "#collect" do
-    #~ it "collects samples from all metrics" do
-      #~ gauge.set(1.28e34)
-      #~ gauge.labels(foo: "bar", baz: "quux").set(-13)
-      #~ gauge.labels(one: "two", three: "four").set(Float64::INFINITY)
-
-      #~ gauge.collect.should eq([
-        #~ Crometheus::Sample.new(value: 1.28e34),
-        #~ Crometheus::Sample.new(value: -13.0, labels: {:foo => "bar", :baz => "quux"}),
-        #~ Crometheus::Sample.new(value: Float64::INFINITY, labels: {:one => "two", :three => "four"})])
-    #~ end
-  #~ end
+  describe "#collect" do
+    it "should yield samples for each labelset" do
+      samples = [] of Crometheus::Sample
+      gauge_collector.collect {|ss| samples << ss}
+      samples.should eq [
+        Crometheus::Sample.new(value: 100.0),
+        Crometheus::Sample.new(value: 20.0, labels: {:foo => "bar"})
+      ]
+    end
+  end
 end
