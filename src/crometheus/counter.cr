@@ -56,6 +56,10 @@ module Crometheus
       "counter"
     end
 
+    def samples(&block : Sample -> Nil) : Nil
+      yield Sample.new(value: @value, labels: @labels)
+    end
+
     # Increments the given counter when the block raises an exception
     # matching the given type. Once
     # https://github.com/crystal-lang/crystal/issues/2060 is resolved,

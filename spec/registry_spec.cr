@@ -1,48 +1,79 @@
 require "./spec_helper"
 require "../src/crometheus/registry"
 require "../src/crometheus/collector"
+require "../src/crometheus/gauge"
+require "../src/crometheus/counter"
 
 describe Crometheus::Registry do
   registry = Crometheus::Registry.new
-  collector1 = Crometheus::Collector(Crometheus::Metric).new(:metric1, "docstring1", nil)
-  collector2 = Crometheus::Collector(Crometheus::Metric).new(:metric2, "docstring2", nil)
+  gauge1 = Crometheus::Collector(Crometheus::Gauge).new(:gauge1, "docstring1", nil)
+  gauge2 = Crometheus::Collector(Crometheus::Gauge).new(:gauge2, "docstring2", nil)
 
   describe "#register" do
     it "ingests collectors passed to it" do
-      registry.register(collector1)
-      registry.register(collector2)
-      registry.collectors.should eq [collector1, collector2]
+      registry.register(gauge1)
+      registry.register(gauge2)
+      registry.collectors.should eq [gauge1, gauge2]
     end
 
     it "enforces unique collector names" do
-      collector_dupe = Crometheus::Collector(Crometheus::Metric).new(:metric2, "docstring3", nil)
-      expect_raises {registry.register(collector_dupe)}
+      gauge_dupe = Crometheus::Collector(Crometheus::Metric).new(:gauge2, "docstring3", nil)
+      expect_raises {registry.register(gauge_dupe)}
     end
   end
 
   describe "#forget" do
     it "deletes collectors from the registry" do
-      registry.forget(collector1)
-      registry.collectors.should eq [collector2]
+      registry.forget(gauge1)
+      registry.collectors.should eq [gauge2]
     end
   end
 
-  registry.register(collector1)
+  registry.register(gauge1)
 
   describe "#start_server and #stop_server" do
-    it "serves metrics on the specified port" do
-      registry.start_server
-      sleep 1
-      response = HTTP::Client.get "http://localhost:9027/metrics"
-      response.status_code.should eq 200
-      response.body.should eq %<\
-# HELP metric1 docstring1
-# TYPE metric1 untyped
-metric1 0.0
-# HELP metric2 docstring2
-# TYPE metric2 untyped
-metric2 0.0
+    registry.start_server
+    sleep 0.5
+
+    counter = Crometheus::Collector(Crometheus::Counter).new(:counter1, "docstring3", registry)
+    counter.inc(1.2345)
+    counter.labels(test: "many labels", label1: "one", label2: "two",
+      label3: "three", label4: "four", label5: "five", label6: "six",
+      label7: "seven", label8: "eight", label9: "nine", label10: "ten",
+    ).inc
+
+    gauge1.labels(test: "infinity").set(Float64::INFINITY)
+    gauge1.labels(test: "-infinity").set(-Float64::INFINITY)
+    gauge1.labels(test: "nan").set(-Float64::NAN)
+    gauge1.labels(test: "large").set(9.876e54)
+    gauge1.labels(test: "unicode", face: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧").set(42)
+
+    response = HTTP::Client.get "http://localhost:9027/metrics"
+    response.status_code.should eq 200
+    expected_response = %<\
+# HELP counter1 docstring3
+# TYPE counter1 counter
+counter1 1.2345
+counter1{test="many labels", label1="one", label2="two", label3="three", \
+label4="four", label5="five", label6="six", label7="seven", label8="eight", \
+label9="nine", label10="ten"} 1.0
+# HELP gauge1 docstring1
+# TYPE gauge1 gauge
+gauge1 0.0
+gauge1{test="infinity"} +Inf
+gauge1{test="-infinity"} -Inf
+gauge1{test="nan"} Nan
+gauge1{test="large"} 9.876e+54
+gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
+# HELP gauge2 docstring2
+# TYPE gauge2 gauge
+gauge2 0.0
 >
+    it "serves metrics in Prometheus text exposition format v0.0.4" do
+      response.body.each_line.zip(expected_response.each_line).each do |a,b|
+        a.should eq b
+      end
+      response.body.should eq expected_response
     end
 
     it "stops serving" do
@@ -56,18 +87,11 @@ metric2 0.0
       registry.host = "127.0.0.55"
       registry.port = 99009
       registry.start_server
-      sleep 1
+      sleep 0.5
       response = HTTP::Client.get "http://127.0.0.55:99009/metrics"
       response.status_code.should eq 200
-      response.body.should eq %<\
-# HELP metric1 docstring1
-# TYPE metric1 untyped
-metric1 0.0
-# HELP metric2 docstring2
-# TYPE metric2 untyped
-metric2 0.0
->
+      response.body.should eq expected_response
+      registry.stop_server
     end
-    registry.stop_server
   end
 end

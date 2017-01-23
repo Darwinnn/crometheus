@@ -3,7 +3,7 @@ require "../src/crometheus/collector"
 require "../src/crometheus/counter"
 
 describe Crometheus::Collector(Crometheus::Counter) do
-  counter = Crometheus::Collector(Crometheus::Counter).new(:counter1, "A Counter Description")
+  counter = Crometheus::Collector(Crometheus::Counter).new(:counter_spec, "A Counter Description")
 
   it "defaults new counters to 0.0" do
     counter.get.should eq 0.0
@@ -55,6 +55,16 @@ describe Crometheus::Collector(Crometheus::Counter) do
         end
       end
       counter.get.should eq 3.0
+    end
+  end
+
+  describe "#samples" do
+    it "returns an appropriate Array of Samples" do
+      counter.reset
+      counter.inc(10)
+      counter.labels(foo: "bar").inc(20)
+      counter.samples.should eq [Crometheus::Sample.new(value: 10.0)]
+      counter.labels(foo: "bar").samples.should eq [Crometheus::Sample.new(value: 20.0, labels: {:foo => "bar"})]
     end
   end
 

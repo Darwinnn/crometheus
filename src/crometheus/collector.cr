@@ -9,7 +9,16 @@ module Crometheus
   # "can't use Crometheus::Collector(T) as generic type argument yet,
   # use a more specific type".
   private abstract class CollectorBase
-    abstract def to_s(io)
+    property name : Symbol
+    property docstring : String
+
+    def initialize(@name : Symbol, @docstring : String, register_with : Crometheus::Registry? = Crometheus.registry)
+      if register_with
+        register_with.register(self)
+      end
+    end
+
+    abstract def collect(&block : Sample -> Nil)
   end
 
   # A Collector is a grouping of one or more related metrics. These
@@ -18,17 +27,12 @@ module Crometheus
   # T must be a subclass of class `Metric`.
   class Collector(T) < CollectorBase
     property metric
-    property name, docstring
+    @children = {} of Hash(Symbol, String) => T
 
     # Creates a new Collector.
-    #
-    def initialize(@name : Symbol, @docstring : String, registry : Crometheus::Registry? = Crometheus.registry)
+    def initialize(name : Symbol, docstring : String, register_with : Crometheus::Registry? = Crometheus.registry)
+      super(name, docstring, register_with)
       @metric = T.new(@name, {} of Symbol => String)
-      @children = {} of Hash(Symbol, String) => T
-
-      if registry
-        registry.register(self)
-      end
     end
 
     # Fetch or create a child metric with the given labelset
@@ -42,12 +46,14 @@ module Crometheus
       #~ labels(**tuple)
     #~ end
 
-    def to_s(io)
-      io << "# HELP " << @name << ' ' << @docstring << '\n'
-      io << "# TYPE " << @name << ' ' << @metric.type << '\n'
-      io << @metric
-      @children.values.each {|child| io << child}
-      return io
+    # This is called by `Registry` to iterate over every sample in the
+    # collection.
+    protected def collect(&block : Sample -> Nil)
+      @metric.samples {|ss| yield ss}
+      @children.each_value do |metric|
+        metric.samples {|ss| yield ss}
+      end
+      return nil
     end
 
     forward_missing_to(metric)

@@ -14,22 +14,27 @@ module Crometheus
       @value
     end
 
+    # Sets @value to a given number.
     def set(x : Int | Float)
       @value = x.to_f64
     end
 
+    # Increments @value by the given number, or 1.0.
     def inc(x : Int | Float = 1.0)
       set @value + x.to_f64
     end
 
+    # Decrements @value by the given number, or 1.0.
     def dec(x : Int | Float = 1.0)
       set @value - x.to_f64
     end
 
+    # Sets @value to the current UNIX timestamp
     def set_to_current_time
       set Time.now.epoch_f
     end
 
+    # Yields, then sets @value to the block's runtime.
     def measure_runtime
       t0 = Time.now
       begin
@@ -40,6 +45,9 @@ module Crometheus
       end
     end
 
+    # Increments @value, yields, then decrements @value. Wrap your event
+    # handlers with this to find out how many events are being processed
+    # at a time.
     def count_concurrent
       inc
       yield
@@ -49,6 +57,10 @@ module Crometheus
 
     def type
       "gauge"
+    end
+
+    def samples(&block : Sample -> Nil) : Nil
+      yield Sample.new(value: @value, labels: @labels)
     end
   end
 end

@@ -2,8 +2,8 @@ require "./spec_helper"
 require "../src/crometheus/collector"
 require "../src/crometheus/gauge"
 
-describe "Crometheus::Collector(Crometheus::Gauge)" do
-  gauge = Crometheus::Collector(Crometheus::Gauge).new(:my_gauge1, "First gauge description")
+describe Crometheus::Collector(Crometheus::Gauge) do
+  gauge = Crometheus::Collector(Crometheus::Gauge).new(:gauge_spec, "First gauge description")
 
   it "defaults new gauges to 0.0" do
     gauge.get.should eq 0.0
@@ -109,19 +109,13 @@ describe "Crometheus::Collector(Crometheus::Gauge)" do
     end
   end
 
-  describe "#to_s" do
-    it "appends a self-summary to the passed IO object" do
-      gauge = Crometheus::Collector(Crometheus::Gauge).new(:my_gaugen, "Nth gauge description")
-      gauge.set(10.0)
-      gauge.labels(mylabel: "foo").set 3.14e+42
-      gauge.labels(mylabel: "bar", otherlabel: "baz").set -1.23e-45
-      gauge.to_s.should eq %<\
-# HELP my_gaugen Nth gauge description
-# TYPE my_gaugen gauge
-my_gaugen 10.0
-my_gaugen{mylabel="foo"} 3.14e+42
-my_gaugen{mylabel="bar", otherlabel="baz"} -1.23e-45
->
+  describe "#samples" do
+    it "yields appropriate Samples" do
+      gauge.set(10)
+      gauge.labels(foo: "bar").set(-20)
+
+      gauge.samples.should eq [Crometheus::Sample.new(value: 10.0)]
+      gauge.labels(foo: "bar").samples.should eq [Crometheus::Sample.new(value: -20.0, labels: {:foo => "bar"})]
     end
   end
 end

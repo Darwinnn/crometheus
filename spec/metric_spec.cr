@@ -18,13 +18,4 @@ describe Crometheus::Metric do
       Crometheus::Metric.valid_labels?({:"foo*bar" => "str"}).should eq(false)
     end
   end
-
-  describe "#to_s" do
-    it "prints the metric according to Prometheus text exposition format v0.0.4" do
-      Crometheus::Metric.new(:name, {} of Symbol => String).to_s.should \
-        eq "name 0.0\n"
-      Crometheus::Metric.new(:name, {:foo => "bar", :baz => "quux"}).to_s.should \
-        eq "name{foo=\"bar\", baz=\"quux\"} 0.0\n"
-    end
-  end
 end

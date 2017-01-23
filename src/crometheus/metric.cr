@@ -1,3 +1,5 @@
+require "./sample"
+
 module Crometheus
 # Base class for individual metrics.
 # You want to instantiate `Collector`(T), not this.
@@ -5,7 +7,7 @@ module Crometheus
 # how to subclass a Metric.
 # But the short version is: override get() to either return an instance
 # variable or calculate some value dynamically.
-  class Metric
+  abstract class Metric
     @name : Symbol
     @labels : Hash(Symbol, String)
 
@@ -15,20 +17,19 @@ module Crometheus
       end
     end
 
-    def get : Float64
-      0.0
-    end
+    # Specifies this metric as "gauge", "counter", "summary",
+    # "histogram", or "untyped".
+    abstract def type : String
 
-    def type
-      "untyped"
-    end
+    # Yields a `Sample` object for each data point this metric returns.
+    abstract def samples(&block : Sample -> Nil) : Nil
 
-    def to_s(io)
-      io << @name
-      unless @labels.empty?
-        io << '{' << @labels.map{|k,v| "#{k}=\"#{v}\""}.join(", ") << '}'
-      end
-      io << ' ' << get << '\n'
+    # As samples(&block : Sample -> Nil), but appends `Sample`s to the
+    # given Array rather than yielding them. Don't override this
+    # samples(); it comes for free with the other one.
+    def samples(ary : Array(Sample) = Array(Sample).new) : Array(Sample)
+      samples {|ss| ary << ss}
+      return ary
     end
 
     # Validates a label set for this metric type
