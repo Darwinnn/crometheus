@@ -29,8 +29,11 @@ module Crometheus
 
       spawn do
         @server_on = true
-        server.listen
-        @server_on = false
+        begin
+          server.listen
+        ensure
+          @server_on = false
+        end
       end
       return true
     end
