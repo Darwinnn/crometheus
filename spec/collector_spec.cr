@@ -1,6 +1,7 @@
 require "./spec_helper"
 require "../src/crometheus/collector"
 require "../src/crometheus/gauge"
+require "../src/crometheus/histogram"
 require "../src/crometheus/sample"
 
 describe Crometheus::Collector(Crometheus::Gauge) do
@@ -16,6 +17,14 @@ describe Crometheus::Collector(Crometheus::Gauge) do
       gauge_collector2 = Crometheus::Collector(Crometheus::Gauge).new(:baz, "quux", registry)
       registry.collectors.should eq [gauge_collector2]
       Crometheus.registry.collectors.should_not contain gauge_collector2
+    end
+
+    it "passes unknown kwargs to Metric objects" do
+      histogram = Crometheus::Collector(Crometheus::Histogram).new(
+        :histogram_name, "", nil, buckets: [1.0, 2.0]
+      )
+      histogram.buckets.keys.should eq([1.0, 2.0, Float64::INFINITY])
+      histogram[label: "value"].buckets.keys.should eq([1.0, 2.0, Float64::INFINITY])
     end
   end
 

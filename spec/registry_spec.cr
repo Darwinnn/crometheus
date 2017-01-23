@@ -48,7 +48,10 @@ describe Crometheus::Registry do
     gauge1.labels(test: "large").set(9.876e54)
     gauge1.labels(test: "unicode", face: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧").set(42)
 
-    summary = Crometheus::Collector(Crometheus::Summary).new(:summary1, "docstring4", registry)
+    histogram = Crometheus::Collector(Crometheus::Histogram).new(:histogram1, "docstring4", registry, buckets: [1.0, 2.0, 3.0])
+    histogram.observe(1.5)
+
+    summary = Crometheus::Collector(Crometheus::Summary).new(:summary1, "docstring5", registry)
     summary.observe(100.0)
 
     response = HTTP::Client.get "http://localhost:9027/metrics"
@@ -71,7 +74,15 @@ gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
 # HELP gauge2 docstring2
 # TYPE gauge2 gauge
 gauge2 0.0
-# HELP summary1 docstring4
+# HELP histogram1 docstring4
+# TYPE histogram1 histogram
+histogram1_count 1.0
+histogram1_sum 1.5
+histogram1{le="1.0"} 0.0
+histogram1{le="2.0"} 1.0
+histogram1{le="3.0"} 1.0
+histogram1{le="+Inf"} 1.0
+# HELP summary1 docstring5
 # TYPE summary1 summary
 summary1_count 1.0
 summary1_sum 100.0
@@ -97,7 +108,9 @@ summary1_sum 100.0
       sleep 0.5
       response = HTTP::Client.get "http://127.0.0.55:99009/metrics"
       response.status_code.should eq 200
-      response.body.should eq expected_response
+      response.body.each_line.zip(expected_response.each_line).each do |a,b|
+        a.should eq b
+      end
       registry.stop_server
     end
   end

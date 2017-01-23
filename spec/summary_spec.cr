@@ -30,14 +30,14 @@ describe Crometheus::Summary do
   end
 
   describe "#measure_runtime" do
-    it "should yield and increase sum by the runtime of the block" do
+    it "yields and increases sum by the runtime of the block" do
       summary.reset
       summary.measure_runtime {sleep 0.1}
       summary.count.should eq 1.0
       (0.05..0.15).should contain summary.sum
     end
 
-    it "should work even when the block raises an exception" do
+    it "works even when the block raises an exception" do
       expect_raises (CrometheusTestException) do
         summary.measure_runtime {sleep 0.3; raise CrometheusTestException.new}
       end

@@ -32,7 +32,7 @@ module Crometheus
     # this metric automatically, so you don't generally need to
     # call #metric - if c is a collector, c.get is equivalent to
     # c.metric.get.
-    property metric
+    property metric : T
     @children = {} of Hash(Symbol, String) => T
 
     # Creates a new Collector.
@@ -43,16 +43,21 @@ module Crometheus
     # register with the default Registry accessible with
     # Crometheus.registry. Set this value to a different Registry or nil
     # to override this behavior.
-    def initialize(name : Symbol, docstring : String, register_with : Crometheus::Registry? = Crometheus.registry)
+    def initialize(name : Symbol, docstring : String, register_with : Crometheus::Registry? = Crometheus.registry, **metric_params)
       super(name, docstring, register_with)
-      @metric = T.new(@name, {} of Symbol => String)
+      # Capture the code for generating a new Metric as a Proc, since
+      # keeping metric_params around is hard without knowing its type.
+      @new_metric = Proc(Hash(Symbol, String), T).new do |labelset|
+        T.new(@name, labelset, **metric_params)
+      end
+      @metric = @new_metric.call({} of Symbol => String)
     end
 
     # Fetches a child metric with the given labelset, creating it with
     # default values if necessary.
     def labels(**tuple)
       labelset = tuple.to_h
-      return @children[labelset] ||= T.new(@name, labelset)
+      return @children[labelset] ||= @new_metric.call(labelset)
     end
 
     # [] can be used as an alias for labels().

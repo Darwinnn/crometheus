@@ -15,7 +15,12 @@ module Crometheus
     property labels : Hash(Symbol, String)
     # property timestamp : Int64? # https://groups.google.com/d/msg/prometheus-developers/p2SBdIbT4lQ/YYSQcpS0AgAJ
 
-    def initialize(@value = 0.0, @labels = {} of Symbol => String, @suffix = "")
+    def initialize(@value, @labels = {} of Symbol => String, @suffix = "")
     end
+
+    def to_s(io)
+      io <<  '[' << @suffix << @labels << ' ' << @value << ']'
+    end
+
   end
 end

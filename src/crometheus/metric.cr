@@ -42,5 +42,11 @@ module Crometheus
       return false if ss.starts_with?("__")
       return true
     end
+
+    private def make_sample(value : Float64, labels = {} of Symbol => String, suffix = "")
+      Crometheus::Sample.new(value: value,
+                             labels: @labels.merge(labels),
+                             suffix: suffix)
+    end
   end
 end
