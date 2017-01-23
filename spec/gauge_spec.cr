@@ -1,5 +1,4 @@
 require "./spec_helper"
-require "../src/crometheus/collector"
 require "../src/crometheus/gauge"
 
 describe Crometheus::Gauge do
@@ -50,7 +49,7 @@ describe Crometheus::Gauge do
   describe "#measure_runtime" do
     it "sets the gauge to the runtime of a block" do
       gauge.measure_runtime {sleep 0.4}
-      (0.4..0.45).should contain gauge.get
+      (0.35..0.45).should contain gauge.get
     end
 
     it "works even when exceptions are raised" do

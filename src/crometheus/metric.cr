@@ -12,8 +12,10 @@ module Crometheus
     @labels : Hash(Symbol, String)
 
     def initialize(@name, @labels = {} of Symbol => String)
-      unless self.class.valid_labels?(@labels)
-        raise ArgumentError.new("Invalid labels")
+      @labels.each_key do |label|
+        unless self.class.valid_label?(label)
+          raise ArgumentError.new("Invalid label: #{label}")
+        end
       end
     end
 
@@ -33,13 +35,11 @@ module Crometheus
     end
 
     # Validates a label set for this metric type
-    def self.valid_labels?(labelset : Hash(Symbol, String))
-      labelset.each_key do |key|
-        return false if [:job, :instance].includes?(key)
-        ss = key.to_s
-        return false if ss !~ /^[a-zA-Z_][a-zA-Z0-9_]*$/
-        return false if ss.starts_with?("__")
-      end
+    def self.valid_label?(label : Symbol)
+      return false if [:job, :instance].includes?(label)
+      ss = label.to_s
+      return false if ss !~ /^[a-zA-Z_][a-zA-Z0-9_]*$/
+      return false if ss.starts_with?("__")
       return true
     end
   end

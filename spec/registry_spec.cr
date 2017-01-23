@@ -48,6 +48,9 @@ describe Crometheus::Registry do
     gauge1.labels(test: "large").set(9.876e54)
     gauge1.labels(test: "unicode", face: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧").set(42)
 
+    summary = Crometheus::Collector(Crometheus::Summary).new(:summary1, "docstring4", registry)
+    summary.observe(100.0)
+
     response = HTTP::Client.get "http://localhost:9027/metrics"
     response.status_code.should eq 200
     expected_response = %<\
@@ -68,6 +71,10 @@ gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
 # HELP gauge2 docstring2
 # TYPE gauge2 gauge
 gauge2 0.0
+# HELP summary1 docstring4
+# TYPE summary1 summary
+summary1_count 1.0
+summary1_sum 100.0
 >
     it "serves metrics in Prometheus text exposition format v0.0.4" do
       response.body.each_line.zip(expected_response.each_line).each do |a,b|
