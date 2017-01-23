@@ -11,7 +11,7 @@ module Crometheus
     @name : Symbol
     @labels : Hash(Symbol, String)
 
-    def initialize(@name, @labels)
+    def initialize(@name, @labels = {} of Symbol => String)
       unless self.class.valid_labels?(@labels)
         raise ArgumentError.new("Invalid labels")
       end
@@ -42,6 +42,5 @@ module Crometheus
       end
       return true
     end
-
   end
 end
