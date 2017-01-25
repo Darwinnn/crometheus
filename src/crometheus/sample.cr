@@ -9,11 +9,22 @@ module Crometheus
   # data. Thus, Counters and Gauges always yield a single Sample, while
   # Summaries and Histograms yield more depending on how many
   # buckets/quantiles are configured.
+  #
+  # A `Sample` like this:
+  # ```
+  # Sample.new(12.0, labels: {:fruit => "banana"}, suffix: "_fruit")
+  # ```
+  # will produce an exported metric line like this:
+  # ```text
+  # metric_name_fruit{fruit="banana"} 12.0
+  # ```
   struct Sample
-    property suffix : String # e.g. "_sum", "_count" for histograms
+    property suffix : String
     property value : Float64
     property labels : Hash(Symbol, String)
-    # property timestamp : Int64? # https://groups.google.com/d/msg/prometheus-developers/p2SBdIbT4lQ/YYSQcpS0AgAJ
+
+    # property timestamp : Int64?
+    # https://groups.google.com/d/msg/prometheus-developers/p2SBdIbT4lQ/YYSQcpS0AgAJ
 
     def initialize(@value, @labels = {} of Symbol => String, @suffix = "")
     end

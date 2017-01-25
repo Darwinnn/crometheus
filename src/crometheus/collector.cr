@@ -1,7 +1,6 @@
 require "./registry"
 
 module Crometheus
-
   # Non-generic abstract base type, because this works:
   #     [] of CollectorBase
   # But this gives an error:
