@@ -2,7 +2,7 @@ require "./spec_helper"
 require "../src/crometheus/counter"
 
 describe Crometheus::Counter do
-  counter = Crometheus::Counter.new(:counter_spec)
+  counter = Crometheus::Counter.new
 
   it "defaults new counters to 0.0" do
     counter.get.should eq 0.0
@@ -62,7 +62,7 @@ describe Crometheus::Counter do
       counter.inc(10)
       counter.samples.should eq [Crometheus::Sample.new(value: 10.0)]
 
-      counter2 = Crometheus::Counter.new(:counter_spec, {:foo => "bar"})
+      counter2 = Crometheus::Counter.new({:foo => "bar"})
       counter2.inc(20)
       counter2.samples.should eq [Crometheus::Sample.new(value: 20.0, labels: {:foo => "bar"})]
     end

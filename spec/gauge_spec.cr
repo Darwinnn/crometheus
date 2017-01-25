@@ -2,7 +2,7 @@ require "./spec_helper"
 require "../src/crometheus/gauge"
 
 describe Crometheus::Gauge do
-  gauge = Crometheus::Gauge.new(:gauge_spec)
+  gauge = Crometheus::Gauge.new
 
   it "defaults new gauges to 0.0" do
     gauge.get.should eq 0.0
@@ -101,7 +101,7 @@ describe Crometheus::Gauge do
       gauge.set(10)
       gauge.samples.should eq [Crometheus::Sample.new(value: 10.0)]
 
-      gauge2 = Crometheus::Gauge.new(:gauge_spec, {:foo => "bar"})
+      gauge2 = Crometheus::Gauge.new({:foo => "bar"})
       gauge2.set(-20)
       gauge2.samples.should eq [Crometheus::Sample.new(value: -20.0, labels: {:foo => "bar"})]
     end

@@ -9,8 +9,8 @@ module Crometheus
     @buckets = {} of Float64 => Float64
     @sum = 0.0
 
-    def initialize(name, labels = {} of Symbol => String, buckets : Array(Float | Int) = @@default_buckets)
-      super(name, labels)
+    def initialize(labels = {} of Symbol => String, buckets : Array(Float | Int) = @@default_buckets)
+      super(labels)
       buckets.each do |le|
         @buckets[le.to_f64] = 0.0
       end

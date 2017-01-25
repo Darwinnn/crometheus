@@ -34,10 +34,9 @@ module Crometheus
 # See the `Counter`, `Gauge`, `Histogram`, and `Summary` classes for
 # examples of how to subclass Metric.
   abstract class Metric
-    @name : Symbol
     @labels : Hash(Symbol, String)
 
-    def initialize(@name, @labels = {} of Symbol => String)
+    def initialize(@labels = {} of Symbol => String)
       @labels.each_key do |label|
         unless self.class.valid_label?(label)
           raise ArgumentError.new("Invalid label: #{label}")

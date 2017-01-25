@@ -1,26 +1,22 @@
 require "./spec_helper"
 require "../src/crometheus/histogram"
 
-
-#hi = Crometheus::Collector(Crometheus::Histogram).new(:histogram_name, "docstring", start: 1, step: 1, count: 10)
-
-
 describe Crometheus::Histogram do
-  histogram1 = Crometheus::Histogram.new(:histogram_spec,
-    buckets: [0.1, 0.25, 0.5, 1.0])
-  histogram2 = Crometheus::Histogram.new(:histogram_spec,
+  histogram1 = Crometheus::Histogram.new(buckets: [0.1, 0.25, 0.5, 1.0])
+  histogram2 = Crometheus::Histogram.new(
     labels: {:foo => "bar"},
-    buckets: [1.0, 2.0, 7.0, 11.0])
+    buckets: [1.0, 2.0, 7.0, 11.0]
+  )
 
   describe ".new" do
     it "allows buckets to be set by default" do
-      Crometheus::Histogram.new(:histogram_spec).buckets.keys.should eq([
+      Crometheus::Histogram.new.buckets.keys.should eq([
         0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
         Float64::INFINITY])
     end
 
     it "allows buckets to be set explicitly" do
-      Crometheus::Histogram.new(:histogram_spec,
+      Crometheus::Histogram.new(
         labels: {:foo => "bar"},
         buckets: [1.0, 2.0, 7.0, 11.0]
       ).buckets.keys.should eq([1.0, 2.0, 7.0, 11.0, Float64::INFINITY])
@@ -148,11 +144,15 @@ describe Crometheus::Histogram do
 
   describe ".valid_label?" do
     it "disallows \"le\" as a label" do
-      expect_raises(ArgumentError) {Crometheus::Histogram.new(:histogram_spec, {:le => "x"})}
+      expect_raises(ArgumentError) do
+        Crometheus::Histogram.new({:le => "x"})
+      end
     end
 
     it "adheres to standard label restrictions" do
-      expect_raises(ArgumentError) {Crometheus::Histogram.new(:histogram_spec, {:"~" => "x"})}
+      expect_raises(ArgumentError) do
+        Crometheus::Histogram.new({:"~" => "x"})
+      end
     end
   end
 end

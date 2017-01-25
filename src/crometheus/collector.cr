@@ -47,7 +47,7 @@ module Crometheus
       # Capture the code for generating a new Metric as a Proc, since
       # keeping metric_params around is hard without knowing its type.
       @new_metric = Proc(Hash(Symbol, String), T).new do |labelset|
-        T.new(@name, labelset, **metric_params)
+        T.new(labelset, **metric_params)
       end
       @metric = @new_metric.call({} of Symbol => String)
     end
