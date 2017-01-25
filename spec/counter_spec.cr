@@ -15,6 +15,10 @@ describe Crometheus::Counter do
       counter.inc 9.0
       counter.get.should eq 10.0
     end
+
+    it "raises on negative numbers" do
+      expect_raises(ArgumentError) {counter.inc -1.0}
+    end
   end
 
   describe "#reset" do
