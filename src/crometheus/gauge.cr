@@ -55,8 +55,8 @@ module Crometheus
       dec
     end
 
-    def type
-      "gauge"
+    def self.type
+      :gauge
     end
 
     def samples(&block : Sample -> Nil) : Nil

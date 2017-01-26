@@ -61,8 +61,8 @@ module Crometheus
       end
     end
 
-    def type
-      "histogram"
+    def self.type
+      :histogram
     end
 
     def self.linear_buckets(start, step, count) : Array(Float64)

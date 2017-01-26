@@ -44,8 +44,8 @@ module Crometheus
       yield Crometheus::Sample.new(suffix: "_sum", value: @sum, labels: @labels)
     end
 
-    def type
-      "summary"
+    def self.type
+      :summary
     end
 
     def self.valid_label?(label : Symbol)

@@ -20,61 +20,133 @@ module Crometheus
     abstract def collect(&block : Sample -> Nil)
   end
 
-  # A Collector is a grouping of one or more related metrics. These
-  # metrics all have the same name, but may have different sets of
-  # labels. Each particular data point is defined by a unique labelset.
-  # T must be a subclass of class `Metric`.
+  # The `Collector` represents what in the Prometheus literature is
+  # generally referred to as a "metric"; i.e. all data gathered under
+  # a given metric name. In Crometheus, a `Collector` is a grouping of
+  # zero or more `Metric` objects, each identified by a particular
+  # set of labels.
+  #
+  # `T` must be a subclass of class `Metric`, or at least behave like
+  # one.
   class Collector(T) < CollectorBase
-    # When Collector is initialized, a metric of type T is automatically
-    # instantiated. This is the default, unlabelled data series for this
-    # collector. Methods not defined on Collector will be forwarded to
-    # this metric automatically, so you don't generally need to
-    # call #metric - if c is a collector, c.get is equivalent to
-    # c.metric.get.
-    property metric : T
-    @children = {} of Hash(Symbol, String) => T
+    @metrics = {} of Hash(Symbol, String) => T
 
     # Creates a new Collector.
     #
-    # name : The name of the collector. This will be converted to a
+    # * `name` - the name of the collector. This will be converted to a
     # String and used as the metric name when exporting to Prometheus.
-    # register_with : an optional Registry instance. By default, metrics
-    # register with the default Registry accessible with
-    # Crometheus.registry. Set this value to a different Registry or nil
-    # to override this behavior.
-    def initialize(name : Symbol, docstring : String, register_with : Crometheus::Registry? = Crometheus.registry, **metric_params)
+    # * `docstring` - a description of the collector. This will be used
+    # on the HELP line when exporting to Prometheus.
+    # * `register_with` - an optional `Registry` instance. By default,
+    # metrics register with the default `Registry` accessible with
+    # `Crometheus.registry`. Set this value to a different `Registry` or
+    # `nil` to override this behavior.
+    # * `base_labels` - an array of labelsets, given as either
+    # named tuples or hashes of `Symbol` to `String`. For each entry in
+    # the array, the constructor will initialize one `Metric` with the
+    # given labelset.
+    # * `metric_params` - any additional keyword arguments will be
+    # passed to the constructor of any `Metric` objects created by this
+    # `Collector`. This is useful for metric types such as `Histogram`,
+    # which requires an array of buckets for initialization.
+    def initialize(name : Symbol,
+                   docstring : String,
+                   register_with : Crometheus::Registry? = Crometheus.registry,
+                   base_labels : (Array(Hash(Symbol, String)) | Array(NamedTuple)) = [] of Hash(Symbol, String),
+                   **metric_params)
       super(name, docstring, register_with)
-      # Capture the code for generating a new Metric as a Proc, since
-      # keeping metric_params around is hard without knowing its type.
+      unless [:gauge, :counter, :histogram, :summary, :untyped].includes? T.type
+        raise ArgumentError.new("#{T}.type must be one of :gauge, "\
+          ":counter, :histogram, :summary, :untyped")
+      end
       @new_metric = Proc(Hash(Symbol, String), T).new do |labelset|
         T.new(labelset, **metric_params)
       end
-      @metric = @new_metric.call({} of Symbol => String)
+
+      if base_labels.is_a? Array(Hash(Symbol, String))
+        base_labels.each do |labelset|
+          @metrics[labelset] = @new_metric.call(labelset)
+        end
+      else
+        base_labels.each do |labels|
+          labelset = {} of Symbol => String
+          labels.each do |k,v|
+            labelset[k] = v.to_s
+          end
+          @metrics[labelset] = @new_metric.call(labelset)
+        end
+      end
     end
 
-    # Fetches a child metric with the given labelset, creating it with
-    # default values if necessary.
-    def labels(**tuple)
-      labelset = tuple.to_h
-      return @children[labelset] ||= @new_metric.call(labelset)
+    # Fetches a metric (of type `T`) with the given labels, initializing
+    # it with default values if necessary.
+    # ```
+    # require "crometheus/collector"
+    # require "crometheus/gauge"
+    # include Crometheus
+    #
+    # animals = Collector(Gauge).new(:animals, "animal counts")
+    # animals[animal: "lion"].inc(3)
+    # animals[animal: "bear"].inc(2)
+    # ```
+    # `Collector` automatically forwards
+    # unrecognized methods to `self[]`, so this method is not necessary
+    # to operate on the metric with the empty labelset.
+    # ```
+    # animals.set 10
+    # animals.get # => 10
+    # animals[].get # => 10
+    # ```
+    def [](**labels)
+      labelset = {} of Symbol => String
+      labels.each do |k,v|
+        labelset[k] = v.to_s
+      end
+      return @metrics[labelset] ||= @new_metric.call(labelset)
     end
 
-    # [] can be used as an alias for labels().
-    def [](**tuple)
-      labels(**tuple)
+    # `labels()` can be used as an alias for `[]`.
+    def labels(**labels)
+      self[**labels]
     end
 
-    # collect() is called by `Registry` to iterate over every sample in the
-    # collection. Users generally need not call it.
+    # Returns an array of every labelset currently assigned a value.
+    def get_labels : Array(Hash(Symbol, String))
+      return @metrics.keys
+    end
+
+    # Deletes the metric with the given labelset from the collector.
+    def remove(**labels)
+      labelset = {} of Symbol => String
+      labels.each do |k,v|
+        labelset[k] = v.to_s
+      end
+      @metrics.delete(labelset)
+    end
+
+    # Deletes all metrics from the collector.
+    def clear
+      @metrics.clear
+    end
+
+    # Returns the type of metric being collected. Will return one of
+    # `:gauge`, `:counter`, `:histogram`, `:summary`, or `:untyped`.
+    def type
+      T.type
+    end
+
+    # Iteratively calls `samples` on each metric in the collector,
+    # yielding each received `Sample`. `Registry` uses this to iterate
+    # over every sample in the collection. Users generally need not call
+    # it.
     def collect(&block : Sample -> Nil)
-      @metric.samples {|ss| yield ss}
-      @children.each_value do |metric|
+      @metrics.each_value do |metric|
         metric.samples {|ss| yield ss}
       end
       return nil
     end
 
-    forward_missing_to(metric)
+    forward_missing_to(self[])
   end
 
 

@@ -49,7 +49,7 @@ module Crometheus
     def generate_text_format(io)
       @collectors.each do |coll|
         io << "# HELP " << coll.name << ' ' << coll.docstring << '\n'
-        io << "# TYPE " << coll.name << ' ' << coll.type << '\n'
+        io << "# TYPE " << coll.name << ' ' << coll.type.to_s << '\n'
         coll.collect do |sample|
           io << coll.name << sample.suffix
           unless sample.labels.empty?

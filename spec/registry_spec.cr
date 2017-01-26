@@ -65,7 +65,6 @@ label4="four", label5="five", label6="six", label7="seven", label8="eight", \
 label9="nine", label10="ten"} 1.0
 # HELP gauge1 docstring1
 # TYPE gauge1 gauge
-gauge1 0.0
 gauge1{test="infinity"} +Inf
 gauge1{test="-infinity"} -Inf
 gauge1{test="nan"} Nan
@@ -73,7 +72,6 @@ gauge1{test="large"} 9.876e+54
 gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
 # HELP gauge2 docstring2
 # TYPE gauge2 gauge
-gauge2 0.0
 # HELP histogram1 docstring4
 # TYPE histogram1 histogram
 histogram1_count 1.0

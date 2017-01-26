@@ -5,16 +5,18 @@ module Crometheus
 # You want to instantiate `Collector`(T), not this.
 #
 # If you want to create your own custom metric types, you'll need to
-# subclass `Metric`. `#type` and `#samples(&block : Sample -> Nil)` are
+# subclass `Metric`. `#samples(&block : Sample -> Nil)` is
 # the only abstract methods you'll need to override; then you will also
-# need to implement your custom instrumentation. The following is a
-# perfectly serviceable, if useless, metric type:
+# need to implement your custom instrumentation. You'll probably also
+# want to define `.type` on your new class; it must return one of
+# `:counter`, `:gauge`, `:histogram`, `:summary`, or `:untyped`. The
+# following is a perfectly serviceable, if useless, metric type:
 #```
 # require "crometheus/metric"
 #
 # class Randometric < Crometheus::Metric
-#   def type
-#     "gauge"
+#   def self.type
+#     :gauge
 #   end
 #
 #   def samples(&block : Crometheus::Sample -> Nil)
@@ -48,7 +50,9 @@ module Crometheus
     # Should be overridden to return exactly one of the following:
     # `"gauge"`, `"counter"`, `"summary"`, `"histogram"`, or
     # `"untyped"`.
-    abstract def type : String
+    def self.type : Symbol
+      :untyped
+    end
 
     # Yields a `Sample` object for each data point this metric returns.
     # This method should `yield` any number of `Sample` objects, one

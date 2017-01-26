@@ -53,8 +53,8 @@ module Crometheus
       raise ex
     end
 
-    def type
-      "counter"
+    def self.type
+      :counter
     end
 
     def samples(&block : Sample -> Nil) : Nil
