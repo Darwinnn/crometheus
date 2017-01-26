@@ -55,10 +55,12 @@ module Crometheus
                    register_with : Crometheus::Registry? = Crometheus.default_registry,
                    base_labels : (Array(Hash(Symbol, String)) | Array(NamedTuple)) = [] of Hash(Symbol, String),
                    **metric_params)
-      super(name, docstring, register_with)
       unless [:gauge, :counter, :histogram, :summary, :untyped].includes? T.type
         raise ArgumentError.new("#{T}.type must be one of :gauge, "\
           ":counter, :histogram, :summary, :untyped")
+      end
+      unless name.to_s =~ /[a-zA-Z_:][a-zA-Z0-9_:]*/
+        raise ArgumentError.new("#{name} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
       end
       @new_metric = Proc(Hash(Symbol, String), T).new do |labelset|
         T.new(labelset, **metric_params)
@@ -77,6 +79,7 @@ module Crometheus
           @metrics[labelset] = @new_metric.call(labelset)
         end
       end
+      super(name, docstring, register_with)
     end
 
     # Fetches a metric (of type `T`) with the given labels, initializing

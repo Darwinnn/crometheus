@@ -19,6 +19,12 @@ describe Crometheus::Collector(Crometheus::Gauge) do
       Crometheus.default_registry.collectors.should_not contain gauge_collector2
     end
 
+    it "rejects unacceptable names" do
+      expect_raises(ArgumentError) do
+        Crometheus::Collector(Crometheus::Gauge).new(:"123", "")
+      end
+    end
+
     it "passes unknown kwargs to Metric objects" do
       histogram = Crometheus::Collector(Crometheus::Histogram).new(
         :histogram_name, "", nil, buckets: [1.0, 2.0]
