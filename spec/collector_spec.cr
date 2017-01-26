@@ -9,14 +9,14 @@ describe Crometheus::Collector(Crometheus::Gauge) do
 
   describe ".new" do
     it "automatically registers with the default registry" do
-      Crometheus.registry.collectors.first.should eq gauge_collector
+      Crometheus.default_registry.collectors.first.should eq gauge_collector
     end
 
     it "registers with a registry passed to the constructor" do
       registry = Crometheus::Registry.new
       gauge_collector2 = Crometheus::Collector(Crometheus::Gauge).new(:baz, "quux", registry)
       registry.collectors.should eq [gauge_collector2]
-      Crometheus.registry.collectors.should_not contain gauge_collector2
+      Crometheus.default_registry.collectors.should_not contain gauge_collector2
     end
 
     it "passes unknown kwargs to Metric objects" do

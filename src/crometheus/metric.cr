@@ -1,8 +1,7 @@
 require "./sample"
 
 module Crometheus
-# Base class for individual metrics.
-# You want to instantiate `Collector`(T), not this.
+# `Metric` is the base class for individual metrics types.
 #
 # If you want to create your own custom metric types, you'll need to
 # subclass `Metric`. `#samples(&block : Sample -> Nil)` is
@@ -31,13 +30,14 @@ module Crometheus
 # If your subclass's constructor needs to take arguments, make them
 # keyword arguments. `Collector` will pass any unrecognized keyword
 # arguments to the constructor of any `Metric` objects it instantiates.
-# `Histogram` configures its buckets this way.
+# For example, `Histogram` configures its buckets this way.
 #
-# See the `Counter`, `Gauge`, `Histogram`, and `Summary` classes for
-# examples of how to subclass Metric.
+# See the source to the `Counter`, `Gauge`, `Histogram`, and `Summary`
+# classes for more detailed examples of how to subclass Metric.
   abstract class Metric
     @labels : Hash(Symbol, String)
 
+    # Creates a new `Metric` with the given labels.
     def initialize(@labels = {} of Symbol => String)
       @labels.each_key do |label|
         unless self.class.valid_label?(label)
@@ -48,8 +48,7 @@ module Crometheus
 
     # Returns the type of Prometheus metric this class represents.
     # Should be overridden to return exactly one of the following:
-    # `"gauge"`, `"counter"`, `"summary"`, `"histogram"`, or
-    # `"untyped"`.
+    # `:gauge`, `:counter`, `:summary`, `:histogram`, or `:untyped`.
     def self.type : Symbol
       :untyped
     end
@@ -84,7 +83,8 @@ module Crometheus
     # Convenience method for creating `Sample` objects.
     # This simply calls `Crometheus::Sample.new` with the same arguments
     # as are passed to it, except that `labels` gets merged into
-    # `@labels` first. Call this from `#samples(&block : Sample)`.
+    # the `Metric`'s labels first. Call this from `#samples(&block :
+    # Sample)`.
     def make_sample(value : Float64, labels = {} of Symbol => String, suffix = "")
       Crometheus::Sample.new(value: value,
                              labels: @labels.merge(labels),

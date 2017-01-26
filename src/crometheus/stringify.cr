@@ -1,10 +1,14 @@
 module Crometheus
-  # Prometheus represents infinities as "+Inf" or "Inf" or "-Inf"
-  # and NaN's as "Nan". I'm not sure if it will accept Crystal's
-  # representations, which are different.
-  # TODO: check if this is necessary
-  # Note that if the value is not +/-INFINITY or NAN, you still need to
-  # do the to_s conversion yourself.
+  # Represents NaN's and infinities in the same format as Prometheus.
+  # Prometheus represents infinities as "+Inf" or "-Inf"
+  # and NaN's as "NaN". We want to use those representations instead of
+  # the ones Crystal uses, to ensure compatability and minimize surprise
+  # in histogram labels.
+  # Note that this only performs a conversion to String if the Float64
+  # has one of the mentioned values; this is to avoid extra String
+  # allocations in use cases like `io << stringify(my_float)`.
+  # If you want a guaranteed String returned you'll still need to use
+  # `to_s` on the result.
   def self.stringify(ff : Float64) : String | Float64
     case ff
     when Float64::INFINITY
@@ -14,19 +18,7 @@ module Crometheus
     when ff
       ff
     else
-      "Nan"
+      "NaN"
     end
   end
-
-  # I believe the following will be more efficient once
-  # https://github.com/crystal-lang/crystal/issues/3923 is resolved.
-  # private def stringify(ff : Float64) : String | Float64
-  #   return @@stringify_dict[ff]
-  # rescue KeyError
-  #   return ff
-  # end
-  # @@stringify_dict = {
-  #   Float64::INFINITY => "+Inf",
-  #   -Float64::INFINITY => "-Inf",
-  #   Float64::NAN => "Nan"}
 end

@@ -1,34 +1,34 @@
 require "./metric"
 
 module Crometheus
-  # `Summary` is a metric type that keeps a running total of observations.
-  # Every time #observe is called, @sum is incremented by that amount,
-  # and @count is incremented by one.
+  # `Summary` is a metric type that keeps a running total of
+  # observations. Every time `#observe` is called, `sum` is incremented
+  # by the given value, and `count` is incremented by one.
   #
-  # Summary should generally not be instantiated directly. Instantiate
-  # `Collector`(Summary) instead.
+  # Quantiles are not currently supported.
+  #
+  # `Summary` should generally not be instantiated directly. Instantiate
+  # `Collector(Summary)` instead.
   class Summary < Metric
-    @count = 0.0
-    @sum = 0.0
+    # The total number of observations.
+    getter count = 0.0
+    # The sum of all observed values.
+    getter sum = 0.0
 
+    # Increments `count` by one and `sum` by `value`.
     def observe(value : Int | Float)
       @count += 1.0
       @sum += value.to_f64
     end
 
-    def count
-      @count
-    end
-
-    def sum
-      @sum
-    end
-
+    # Sets `count` and `sum` to `0.0`.
     def reset
       @count = 0.0
       @sum = 0.0
     end
 
+    # Yields to the block, then passes the block's runtime to
+    # `#observe`.
     def measure_runtime(&block)
       t0 = Time.now
       begin
@@ -39,15 +39,21 @@ module Crometheus
       end
     end
 
+    # Yields two samples, one for `count` and one for `sum`.
     def samples(&block : Sample -> Nil) : Nil
       yield Crometheus::Sample.new(suffix: "_count", value: @count, labels: @labels)
       yield Crometheus::Sample.new(suffix: "_sum", value: @sum, labels: @labels)
     end
 
+    # Returns `:summary`. See `Metric.type`.
     def self.type
       :summary
     end
 
+    # In addition to the standard `Metric.valid_label?` behavior,
+    # returns `false` if a label is `:quantile`. Histograms reserve this
+    # label for exporting quantiles (currently unsupported by
+    # Crometheus).
     def self.valid_label?(label : Symbol)
       return false if :quantile == label
       return super

@@ -22,9 +22,9 @@ describe Crometheus::Registry do
     end
   end
 
-  describe "#forget" do
+  describe "#unregister" do
     it "deletes collectors from the registry" do
-      registry.forget(gauge1)
+      registry.unregister(gauge1)
       registry.collectors.should eq [gauge2]
     end
   end
@@ -54,7 +54,7 @@ describe Crometheus::Registry do
     summary = Crometheus::Collector(Crometheus::Summary).new(:summary1, "docstring5", registry)
     summary.observe(100.0)
 
-    response = HTTP::Client.get "http://localhost:9027/metrics"
+    response = HTTP::Client.get "http://localhost:5000/metrics"
     response.status_code.should eq 200
     expected_response = %<\
 # HELP counter1 docstring3
@@ -67,7 +67,7 @@ label9="nine", label10="ten"} 1.0
 # TYPE gauge1 gauge
 gauge1{test="infinity"} +Inf
 gauge1{test="-infinity"} -Inf
-gauge1{test="nan"} Nan
+gauge1{test="nan"} NaN
 gauge1{test="large"} 9.876e+54
 gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
 # HELP gauge2 docstring2

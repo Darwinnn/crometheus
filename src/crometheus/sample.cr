@@ -1,22 +1,21 @@
 module Crometheus
-  # An instantaneous datum from a Metric. In general, `Metric` types
-  # should yield one or more of these when #sample is colled.
-  # Collector#collect aggregates Samples from associated `Metric`s,
-  # and `Registry` interpolates their values into an appropriate
-  # exposition format.
+  # An instantaneous datum from a metric. `Metric` types
+  # should yield one or more of these when `Metric#sample` is called.
+  # `Collector#collect` aggregates samples from metrics, and `Registry`
+  # interpolates their values into an appropriate exposition format.
   #
-  # Each Sample corresponds to one line item in the exposited metric
-  # data. Thus, Counters and Gauges always yield a single Sample, while
-  # Summaries and Histograms yield more depending on how many
+  # Each Sample corresponds to one line item in the exposed metric
+  # data. Thus, counters and gauges always yield a single sample, while
+  # summaries and histograms yield more depending on how many
   # buckets/quantiles are configured.
   #
-  # A `Sample` like this:
+  # A `Metric` named `"fruit"` that yields a `Sample` like this:
   # ```
-  # Sample.new(12.0, labels: {:fruit => "banana"}, suffix: "_fruit")
+  # Sample.new(12.0, labels: {:species => "banana"}, suffix: "_count")
   # ```
   # will produce an exported metric line like this:
   # ```text
-  # metric_name_fruit{fruit="banana"} 12.0
+  # fruit_count{species="banana"} 12.0
   # ```
   struct Sample
     property suffix : String

@@ -11,13 +11,14 @@ module Crometheus
     property name : Symbol
     property docstring : String
 
-    def initialize(@name : Symbol, @docstring : String, register_with : Crometheus::Registry? = Crometheus.registry)
+    def initialize(@name : Symbol, @docstring : String, register_with : Crometheus::Registry? = Crometheus.default_registry)
       if register_with
         register_with.register(self)
       end
     end
 
     abstract def collect(&block : Sample -> Nil)
+    abstract def type : Symbol
   end
 
   # The `Collector` represents what in the Prometheus literature is
@@ -39,8 +40,8 @@ module Crometheus
     # on the HELP line when exporting to Prometheus.
     # * `register_with` - an optional `Registry` instance. By default,
     # metrics register with the default `Registry` accessible with
-    # `Crometheus.registry`. Set this value to a different `Registry` or
-    # `nil` to override this behavior.
+    # `Crometheus.default_registry`. Set this value to a different
+    # `Registry` or `nil` to override this behavior.
     # * `base_labels` - an array of labelsets, given as either
     # named tuples or hashes of `Symbol` to `String`. For each entry in
     # the array, the constructor will initialize one `Metric` with the
@@ -51,7 +52,7 @@ module Crometheus
     # which requires an array of buckets for initialization.
     def initialize(name : Symbol,
                    docstring : String,
-                   register_with : Crometheus::Registry? = Crometheus.registry,
+                   register_with : Crometheus::Registry? = Crometheus.default_registry,
                    base_labels : (Array(Hash(Symbol, String)) | Array(NamedTuple)) = [] of Hash(Symbol, String),
                    **metric_params)
       super(name, docstring, register_with)
