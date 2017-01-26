@@ -41,8 +41,8 @@ module Crometheus
 
     # Yields two samples, one for `count` and one for `sum`.
     def samples(&block : Sample -> Nil) : Nil
-      yield Crometheus::Sample.new(suffix: "_count", value: @count, labels: @labels)
-      yield Crometheus::Sample.new(suffix: "_sum", value: @sum, labels: @labels)
+      yield make_sample(@count, suffix: "_count")
+      yield make_sample(@sum, suffix: "_sum")
     end
 
     # Returns `:summary`. See `Metric.type`.

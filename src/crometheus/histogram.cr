@@ -20,7 +20,7 @@ module Crometheus
     # A running sum of all observed values.
     getter sum = 0.0
 
-    # In addition to the standard arguments for `Metric.initialize`,
+    # In addition to the standard arguments for `Metric#initialize`,
     # takes an array that defines the range of each bucket. The
     # `.linear_buckets` and `.geometric_buckets` convenience methods may
     # be used to generate an appropriate array. A bucket for Infinity
