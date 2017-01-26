@@ -26,18 +26,18 @@ describe Crometheus::Histogram do
   describe "#linear_buckets" do
     it "returns a linearly increasing Array of Float64s" do
       Crometheus::Histogram.linear_buckets(1, 2, 5).should eq [
-        1.0, 3.0, 5.0, 7.0, Float64::INFINITY]
+        1.0, 3.0, 5.0, 7.0, 9.0, Float64::INFINITY]
       Crometheus::Histogram.linear_buckets(-20, 10, 4).should eq [
-        -20.0, -10.0, 0.0, Float64::INFINITY]
+        -20.0, -10.0, 0.0, 10.0, Float64::INFINITY]
     end
   end
 
   describe "#geometric_buckets" do
     it "returns a geometrically increasing Array of Float64s" do
       Crometheus::Histogram.geometric_buckets(1, 2, 4).should eq [
-        1.0, 2.0, 4.0, Float64::INFINITY]
+        1.0, 2.0, 4.0, 8.0, Float64::INFINITY]
       Crometheus::Histogram.geometric_buckets(2, 1.5, 5).should eq [
-        2.0, 3.0, 4.5, 6.75, Float64::INFINITY]
+        2.0, 3.0, 4.5, 6.75, 10.125, Float64::INFINITY]
     end
   end
 

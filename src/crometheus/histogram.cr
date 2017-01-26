@@ -105,7 +105,7 @@ module Crometheus
       ary = [] of Float64
       start = start.to_f64
       step = step.to_f64
-      (bucket_count - 1).times do |ii|
+      bucket_count.times do |ii|
         ary << start + step * ii
       end
       return ary << Float64::INFINITY
@@ -129,7 +129,7 @@ module Crometheus
       ary = [] of Float64
       start = start.to_f64
       factor = factor.to_f64
-      (bucket_count - 1).times do |ii|
+      bucket_count.times do |ii|
         ary << start * factor ** ii
       end
       return ary << Float64::INFINITY
