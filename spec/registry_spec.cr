@@ -76,10 +76,10 @@ gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
 # TYPE histogram1 histogram
 histogram1_count 1.0
 histogram1_sum 1.5
-histogram1{le="1.0"} 0.0
-histogram1{le="2.0"} 1.0
-histogram1{le="3.0"} 1.0
-histogram1{le="+Inf"} 1.0
+histogram1_bucket{le="1.0"} 0.0
+histogram1_bucket{le="2.0"} 1.0
+histogram1_bucket{le="3.0"} 1.0
+histogram1_bucket{le="+Inf"} 1.0
 # HELP summary1 docstring5
 # TYPE summary1 summary
 summary1_count 1.0

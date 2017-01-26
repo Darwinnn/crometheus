@@ -78,7 +78,7 @@ module Crometheus
       yield make_sample(@buckets[Float64::INFINITY], suffix: "_count")
       yield make_sample(@sum, suffix: "_sum")
       @buckets.each do |le, value|
-        yield make_sample(value, labels: {:le => Crometheus.stringify(le).to_s})
+        yield make_sample(value, labels: {:le => Crometheus.stringify(le).to_s}, suffix: "_bucket")
       end
     end
 

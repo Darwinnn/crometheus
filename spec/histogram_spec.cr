@@ -117,13 +117,13 @@ describe Crometheus::Histogram do
       histogram1.observe(0.31)
 
       expected = [
-        Crometheus::Sample.new(suffix: "_count", value: 4.0),
-        Crometheus::Sample.new(suffix: "_sum", value: 0.01 + 0.11 + 0.21 + 0.31), # not 0.64 due to FP error
-        Crometheus::Sample.new(labels: {:le => "0.1"}, value: 1.0),
-        Crometheus::Sample.new(labels: {:le => "0.25"}, value: 3.0),
-        Crometheus::Sample.new(labels: {:le => "0.5"}, value: 4.0),
-        Crometheus::Sample.new(labels: {:le => "1.0"}, value: 4.0),
-        Crometheus::Sample.new(labels: {:le => "+Inf"}, value: 4.0)
+        Crometheus::Sample.new(4.0, suffix: "_count"),
+        Crometheus::Sample.new(0.01 + 0.11 + 0.21 + 0.31, suffix: "_sum"), # not 0.64 due to FP error
+        Crometheus::Sample.new(1.0, labels: {:le => "0.1"}, suffix: "_bucket"),
+        Crometheus::Sample.new(3.0, labels: {:le => "0.25"}, suffix: "_bucket"),
+        Crometheus::Sample.new(4.0, labels: {:le => "0.5"}, suffix: "_bucket"),
+        Crometheus::Sample.new(4.0, labels: {:le => "1.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(4.0, labels: {:le => "+Inf"}, suffix: "_bucket")
       ]
       histogram1.samples.size.should eq expected.size
       histogram1.samples.zip(expected).each do |actual, expected|
@@ -131,13 +131,13 @@ describe Crometheus::Histogram do
       end
 
       histogram2.samples.should eq [
-        Crometheus::Sample.new(suffix: "_count", labels: {:foo => "bar"}, value: 2.0),
-        Crometheus::Sample.new(suffix: "_sum", labels: {:foo => "bar"}, value: 24.5),
-        Crometheus::Sample.new(labels: {:foo => "bar", :le => "1.0"}, value: 0.0),
-        Crometheus::Sample.new(labels: {:foo => "bar", :le => "2.0"}, value: 0.0),
-        Crometheus::Sample.new(labels: {:foo => "bar", :le => "7.0"}, value: 1.0),
-        Crometheus::Sample.new(labels: {:foo => "bar", :le => "11.0"}, value: 1.0),
-        Crometheus::Sample.new(labels: {:foo => "bar", :le => "+Inf"}, value: 2.0)
+        Crometheus::Sample.new(2.0, suffix: "_count", labels: {:foo => "bar"}),
+        Crometheus::Sample.new(24.5, suffix: "_sum", labels: {:foo => "bar"}),
+        Crometheus::Sample.new(0.0, labels: {:foo => "bar", :le => "1.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(0.0, labels: {:foo => "bar", :le => "2.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(1.0, labels: {:foo => "bar", :le => "7.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(1.0, labels: {:foo => "bar", :le => "11.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(2.0, labels: {:foo => "bar", :le => "+Inf"}, suffix: "_bucket")
       ]
     end
   end
