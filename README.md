@@ -41,14 +41,15 @@ my_first_gauge{label="yes"} 200.0
 ```
 
 The above is all the setup you need for straightforward use cases; all that's left is creating real metrics and instrumenting your code.
-See the reference documentation (coming soon! Though the source is documented) for the `Crometheus::Gauge`, `Crometheus::Counter`, `Crometheus::Histogram`, and `Crometheus::Summary` classes to learn more about the available metric types.
-Always use these classes as a parameter for `Crometheus::Collector`; avoid instantiating them yourself.
+See the reference documentation for the [Gauge](https://ezrast.gitlab.io/crometheus/Crometheus/Gauge.html), [Counter](https://ezrast.gitlab.io/crometheus/Crometheus/Counter.html), [Histogram](https://ezrast.gitlab.io/crometheus/Crometheus/Histogram.html), and [Summary](https://ezrast.gitlab.io/crometheus/Crometheus/Summary.html) classes to learn more about the available metric types.
+Always use these classes as a parameter for the generic [Collector](https://ezrast.gitlab.io/crometheus/Crometheus/Collector.html) type; avoid instantiating them yourself.
+A slightly more involved example is available at `examples/src/wordcounter.cr`.
 
-For server configuration see the `Crometheus::Registry` class documentation.
-If you want to use multiple registries, e.g. to expose two different sets of metrics on different ports, you'll need to instantiate a second `Crometheus::Registry` object and pass it as a third argument to your `Crometheus::Collector` constructors.
+For server configuration see the [Registry](https://ezrast.gitlab.io/crometheus/Crometheus/Registry.html) class documentation.
+If you want to use multiple registries, e.g. to expose two different sets of metrics on different ports, you'll need to instantiate a second Registry object (other than the default) and pass it as a third argument to your Collector constructors.
 
-If you want to define a custom metric type, see the documentation for the `Crometheus::Metric` class, and inherit from that.
-Be sure your metric's method names don't collide with anything in `Crometheus::Collector`, since that class uses `forward_missing_to` to pretend it's a metric.
+If you want to define a custom metric type, see the documentation for the [Metric](https://ezrast.gitlab.io/crometheus/Crometheus/Metric.html) class, and inherit from that.
+Be sure your metric's method names don't collide with anything in [Collector](https://ezrast.gitlab.io/crometheus/Crometheus/Collector.html), since that class uses `forward_missing_to` to pretend it's a metric.
 
 ## Author
 
