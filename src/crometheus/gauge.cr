@@ -6,6 +6,19 @@ module Crometheus
   #
   # `Gauge` should generally not be instantiated directly. Instantiate
   # `Collector(Gauge)` instead.
+  #
+  #```
+  # body_temperature = Crometheus::Collector(Crometheus::Gauge).new(
+  #   :body_temperature, "Human body temperature")
+  # body_temperature.set 98.6
+  #
+  # # Running a fever...
+  # body_temperature.inc 1.8
+  # # Partial recovery
+  # body_temperature.dec 0.6
+  #
+  # body_temperature.get  # => 99.8
+  #```
   class Gauge < Metric
     @value : Float64 = 0.0
 
@@ -60,8 +73,10 @@ module Crometheus
       :gauge
     end
 
-    # Yields a single Sample bearing the gauge value. See
-    # `Metric#samples`.
+    # Yields a single Sample bearing the gauge value.
+    #
+    # If you aren't writing your own metric types, don't worry about
+    # this. If you are, see `Metric#samples`.
     def samples(&block : Sample -> Nil) : Nil
       yield make_sample(@value)
     end

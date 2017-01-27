@@ -72,6 +72,8 @@ module Crometheus
     # * the label is `:job` or `:instance`
     # * the label starts with `__`
     # * the label is not alphanumeric with underscores
+    #
+    # This generally does not need to be called manually.
     def self.valid_label?(label : Symbol) : Bool
       return false if [:job, :instance].includes?(label)
       ss = label.to_s

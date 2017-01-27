@@ -35,18 +35,22 @@ module Crometheus
     # Creates a new Collector.
     #
     # * `name` - the name of the collector. This will be converted to a
-    # String and used as the metric name when exporting to Prometheus.
+    # `String` and used as the metric name when exporting to Prometheus.
     # * `docstring` - a description of the collector. This will be used
     # on the HELP line when exporting to Prometheus.
     # * `register_with` - an optional `Registry` instance. By default,
-    # metrics register with the default `Registry` accessible with
+    # metrics register with the default `Registry` accessible via
     # `Crometheus.default_registry`. Set this value to a different
     # `Registry` or `nil` to override this behavior.
     # * `base_labels` - an array of labelsets, given as either
     # named tuples or hashes of `Symbol` to `String`. For each entry in
     # the array, the constructor will initialize one `Metric` with the
-    # given labelset.
-    # * `metric_params` - any additional keyword arguments will be
+    # given labelset. For example, passing `base_labels: [{foo: "bar"},
+    # {foo: "baz"}]`
+    # in the constructor to `coll` is equivalent to calling
+    # `coll[foo: "bar"]; coll[foo: "baz"]` immediately after calling
+    # `.new`.
+    # * `**metric_params` - any additional keyword arguments will be
     # passed to the constructor of any `Metric` objects created by this
     # `Collector`. This is useful for metric types such as `Histogram`,
     # which requires an array of buckets for initialization.

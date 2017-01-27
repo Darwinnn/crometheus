@@ -10,6 +10,20 @@ module Crometheus
   #
   # `Histogram` should generally not be instantiated directly.
   # Instantiate `Collector(Histogram)` instead.
+  #```
+  # buckets = Crometheus::Histogram.linear_buckets(60, 30, 10)
+  # # => [60.0, 90.0, 120.0, ... , 300.0, 330.0, Infinity]
+  #
+  # hold_times = Crometheus::Collector(Crometheus::Histogram).new(
+  #   :hold_times, "Time spent on hold", buckets: buckets)
+  # hold_times.observe 35.4
+  # hold_times.observe 214.1
+  # hold_times.observe 179.0
+  # hold_times.observe 118.0
+  # hold_times.observe 384.4
+  #
+  # under_2_min = hold_times.buckets[120.0] / hold_times.count # => 0.4
+  #```
   class Histogram < Metric
     @@default_buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1,
                          2.5, 5, 10]
@@ -72,8 +86,10 @@ module Crometheus
     end
 
     # Yields one `Sample` for each bucket, in addition to one for
-    # `count` (equal to the infinity bucket) and one for `sum`. See
-    # `Metric#samples`.
+    # `count` (equal to the infinity bucket) and one for `sum`.
+    #
+    # If you aren't writing your own metric types, don't worry about
+    # this. If you are, see `Metric#samples`.
     def samples(&block : Sample -> Nil)
       yield make_sample(@buckets[Float64::INFINITY], suffix: "_count")
       yield make_sample(@sum, suffix: "_sum")
@@ -82,7 +98,10 @@ module Crometheus
       end
     end
 
-    # Returns `:histogram`. See `Metric.type`.
+    # Returns `:histogram`.
+    #
+    # If you aren't writing your own metric types, don't worry about
+    # this. If you are, see `Metric#samples`.
     def self.type
       :histogram
     end

@@ -7,6 +7,15 @@ module Crometheus
   #
   # `Counter` should generally not be instantiated directly. Instantiate
   # `Collector(Counter)` instead.
+  #
+  #```
+  # flowers_planted = Crometheus::Collector(Crometheus::Counter).new(
+  #   :flowers_planted, "Number of flowers planted")
+  # flowers_planted.inc 10
+  # flowers_planted.inc
+  # flowers_planted.inc
+  # flowers_planted.get # => 12.0
+  #```
   class Counter < Metric
     @value = 0.0
 
@@ -15,7 +24,7 @@ module Crometheus
       @value
     end
 
-    # Increments the counter value by the given number, or 1.0.
+    # Increments the counter value by the given number, or `1.0`.
     def inc(x : Int | Float = 1.0)
       raise ArgumentError.new "Counter increments must be non-negative" if x < 0
       @value += x

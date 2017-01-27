@@ -9,6 +9,15 @@ module Crometheus
   #
   # `Summary` should generally not be instantiated directly. Instantiate
   # `Collector(Summary)` instead.
+  #```
+  # cargo_weight = Crometheus::Collector(Crometheus::Summary).new(
+  #   :cargo_weight, "Weight of all boxes")
+  # cargo_weight.observe 29.0
+  # cargo_weight.observe 12.0
+  # cargo_weight.observe 10.0
+  #
+  # mean_weight = cargo_weight.sum / cargo_weight.count  # => 17.0
+  #```
   class Summary < Metric
     # The total number of observations.
     getter count = 0.0
@@ -40,6 +49,9 @@ module Crometheus
     end
 
     # Yields two samples, one for `count` and one for `sum`.
+    #
+    # If you aren't writing your own metric types, don't worry about
+    # this. If you are, see `Metric#samples`.
     def samples(&block : Sample -> Nil) : Nil
       yield make_sample(@count, suffix: "_count")
       yield make_sample(@sum, suffix: "_sum")
