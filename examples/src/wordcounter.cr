@@ -13,13 +13,17 @@ bucket_array = Histogram.linear_buckets(4, 1, 7)
 word_length = Collector(Histogram).new(
   name: :wordcounter_word_length,
   docstring: "How many words have been typed",
+  base_labels: [nil, {type: "palindrome"}, {type: "allcaps"}, {type: "punctuated"}],
   buckets: bucket_array
 )
-lines = Collector(Counter).new(:wordcounter_lines, "The number of lines entered")
-start_time = Collector(Gauge).new(:wordcounter_start_time, "Startup timestamp")
-last_usage = Collector(Gauge).new(:wordcounter_last_usage, "Timestamp of latest gets()")
 
+# Initialize each metric as we create it, so we don't get missing time series
+lines = Collector(Counter).new(:wordcounter_lines, "The number of lines entered")
+lines.reset # equivalent to specifying `base_labels: [nil]`
+start_time = Collector(Gauge).new(:wordcounter_start_time, "Startup timestamp")
 start_time.set_to_current_time
+last_usage = Collector(Gauge).new(:wordcounter_last_usage, "Timestamp of latest gets()")
+last_usage.set_to_current_time
 
 # By default, all metrics are added to a default registry, accessible like this.
 reg = Crometheus.default_registry

@@ -43,10 +43,10 @@ module Crometheus
     # `Crometheus.default_registry`. Set this value to a different
     # `Registry` or `nil` to override this behavior.
     # * `base_labels` - an array of labelsets, given as either
-    # named tuples or hashes of `Symbol` to `String`. For each entry in
-    # the array, the constructor will initialize one `Metric` with the
-    # given labelset. For example, passing `base_labels: [{foo: "bar"},
-    # {foo: "baz"}]`
+    # named tuples, hashes of `Symbol` to `String`, or `nil`, which is
+    # equivalent to the empty tuple. For each entry in the array, the
+    # constructor will initialize a `Metric` with the given labelset.
+    # For example, passing `base_labels: [{foo: "bar"}, {foo: "baz"}]`
     # in the constructor to `coll` is equivalent to calling
     # `coll[foo: "bar"]; coll[foo: "baz"]` immediately after calling
     # `.new`.
@@ -57,7 +57,7 @@ module Crometheus
     def initialize(name : Symbol,
                    docstring : String,
                    register_with : Crometheus::Registry? = Crometheus.default_registry,
-                   base_labels : (Array(Hash(Symbol, String)) | Array(NamedTuple)) = [] of Hash(Symbol, String),
+                   base_labels : Array(Hash(Symbol, String) | NamedTuple | Nil) = [] of Nil,
                    **metric_params)
       unless [:gauge, :counter, :histogram, :summary, :untyped].includes? T.type
         raise ArgumentError.new("#{T}.type must be one of :gauge, "\
@@ -70,18 +70,9 @@ module Crometheus
         T.new(labelset, **metric_params)
       end
 
-      if base_labels.is_a? Array(Hash(Symbol, String))
-        base_labels.each do |labelset|
-          @metrics[labelset] = @new_metric.call(labelset)
-        end
-      else
-        base_labels.each do |labels|
-          labelset = {} of Symbol => String
-          labels.each do |k,v|
-            labelset[k] = v.to_s
-          end
-          @metrics[labelset] = @new_metric.call(labelset)
-        end
+      base_labels.each do |labels|
+        label_hash = self.class.labels_to_h(labels)
+        @metrics[label_hash] = @new_metric.call(label_hash)
       end
       super(name, docstring, register_with)
     end
@@ -106,11 +97,8 @@ module Crometheus
     # animals[].get # => 10
     # ```
     def [](**labels)
-      labelset = {} of Symbol => String
-      labels.each do |k,v|
-        labelset[k] = v.to_s
-      end
-      return @metrics[labelset] ||= @new_metric.call(labelset)
+      label_hash = self.class.labels_to_h(labels)
+      return @metrics[label_hash] ||= @new_metric.call(label_hash)
     end
 
     # `labels()` can be used as an alias for `[]`.
@@ -125,11 +113,8 @@ module Crometheus
 
     # Deletes the metric with the given labelset from the collector.
     def remove(**labels)
-      labelset = {} of Symbol => String
-      labels.each do |k,v|
-        labelset[k] = v.to_s
-      end
-      @metrics.delete(labelset)
+      label_hash = self.class.labels_to_h(labels)
+      @metrics.delete(label_hash)
     end
 
     # Deletes all metrics from the collector.
@@ -155,6 +140,19 @@ module Crometheus
     end
 
     forward_missing_to(self[])
+
+    protected def self.labels_to_h(labels : Hash(Symbol, String) | NamedTuple | Nil) : Hash(Symbol, String)
+      if labels.is_a? NamedTuple
+        labelset = {} of Symbol => String
+        labels.each do |k,v|
+          labelset[k] = v.to_s
+        end
+        return labelset
+      elsif labels.nil?
+        return {} of Symbol => String
+      end
+      return labels
+    end
   end
 
 

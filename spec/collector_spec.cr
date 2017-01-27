@@ -52,13 +52,15 @@ describe Crometheus::Collector(Crometheus::Gauge) do
       gauge = Crometheus::Collector(Crometheus::Gauge).new(
         :gauge_name, "", nil, [
           {label: "value4"},
-          {label: "value5"}
+          {label: "value5"},
+          nil
         ])
       samples = [] of Crometheus::Sample
       gauge.collect {|ss| samples << ss}
       samples.should eq [
         Crometheus::Sample.new(0.0, labels: {:label => "value4"}),
-        Crometheus::Sample.new(0.0, labels: {:label => "value5"})
+        Crometheus::Sample.new(0.0, labels: {:label => "value5"}),
+        Crometheus::Sample.new(0.0)
       ]
     end
   end

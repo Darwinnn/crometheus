@@ -10,8 +10,7 @@ targets:
 
 dependencies:
   crometheus:
-    gitlab: ezrast/crometheus
-    branch: master
+    path: ../
 
 crystal: 0.20.5
 
