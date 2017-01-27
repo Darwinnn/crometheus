@@ -1,0 +1,9 @@
+image: crystallang/crystal
+
+pages:
+  script:
+  - crystal doc
+  - mv doc public
+  artifacts:
+    paths: [public]
+  only: [master]
