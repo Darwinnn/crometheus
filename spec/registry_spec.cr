@@ -32,6 +32,7 @@ describe Crometheus::Registry do
   registry.register(gauge1)
 
   describe "#start_server and #stop_server" do
+    registry.namespace = "spec"
     registry.start_server
     sleep 0.5
 
@@ -57,33 +58,33 @@ describe Crometheus::Registry do
     response = HTTP::Client.get "http://localhost:5000/metrics"
     response.status_code.should eq 200
     expected_response = %<\
-# HELP counter1 docstring3
-# TYPE counter1 counter
-counter1 1.2345
-counter1{test="many labels", label1="one", label2="two", label3="three", \
+# HELP spec_counter1 docstring3
+# TYPE spec_counter1 counter
+spec_counter1 1.2345
+spec_counter1{test="many labels", label1="one", label2="two", label3="three", \
 label4="four", label5="five", label6="six", label7="seven", label8="eight", \
 label9="nine", label10="ten"} 1.0
-# HELP gauge1 docstring1
-# TYPE gauge1 gauge
-gauge1{test="infinity"} +Inf
-gauge1{test="-infinity"} -Inf
-gauge1{test="nan"} NaN
-gauge1{test="large"} 9.876e+54
-gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
-# HELP gauge2 docstring2
-# TYPE gauge2 gauge
-# HELP histogram1 docstring4
-# TYPE histogram1 histogram
-histogram1_count 1.0
-histogram1_sum 1.5
-histogram1_bucket{le="1.0"} 0.0
-histogram1_bucket{le="2.0"} 1.0
-histogram1_bucket{le="3.0"} 1.0
-histogram1_bucket{le="+Inf"} 1.0
-# HELP summary1 docstring5
-# TYPE summary1 summary
-summary1_count 1.0
-summary1_sum 100.0
+# HELP spec_gauge1 docstring1
+# TYPE spec_gauge1 gauge
+spec_gauge1{test="infinity"} +Inf
+spec_gauge1{test="-infinity"} -Inf
+spec_gauge1{test="nan"} NaN
+spec_gauge1{test="large"} 9.876e+54
+spec_gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
+# HELP spec_gauge2 docstring2
+# TYPE spec_gauge2 gauge
+# HELP spec_histogram1 docstring4
+# TYPE spec_histogram1 histogram
+spec_histogram1_count 1.0
+spec_histogram1_sum 1.5
+spec_histogram1_bucket{le="1.0"} 0.0
+spec_histogram1_bucket{le="2.0"} 1.0
+spec_histogram1_bucket{le="3.0"} 1.0
+spec_histogram1_bucket{le="+Inf"} 1.0
+# HELP spec_summary1 docstring5
+# TYPE spec_summary1 summary
+spec_summary1_count 1.0
+spec_summary1_sum 100.0
 >
     it "serves metrics in Prometheus text exposition format v0.0.4" do
       response.body.each_line.zip(expected_response.each_line).each do |a,b|

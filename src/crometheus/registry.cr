@@ -24,6 +24,9 @@ module Crometheus
     property host = "localhost"
     # The port that the server should bind to.
     property port = 5000
+    # `namespace`, if non-empty, will be prefixed to all metric names,
+    # separated by an underscore.
+    getter namespace = ""
     @server : HTTP::Server? = nil
     @server_on = false
 
@@ -90,12 +93,21 @@ module Crometheus
       return true
     end
 
+    # Sets `namespace` to `str`, after validating legality.
+    def namespace=(str : String)
+      unless str =~ /[a-zA-Z_:][a-zA-Z0-9_:]*/
+        raise ArgumentError.new("#{str} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
+      end
+      @namespace = str
+    end
+
     private def generate_text_format(io)
+      prefix = namespace.empty? ? "" : namespace + "_"
       @collectors.each do |coll|
-        io << "# HELP " << coll.name << ' ' << coll.docstring << '\n'
-        io << "# TYPE " << coll.name << ' ' << coll.type.to_s << '\n'
+        io << "# HELP " << prefix << coll.name << ' ' << coll.docstring << '\n'
+        io << "# TYPE " << prefix << coll.name << ' ' << coll.type.to_s << '\n'
         coll.collect do |sample|
-          io << coll.name << sample.suffix
+          io << prefix << coll.name << sample.suffix
           unless sample.labels.empty?
             io << '{' << sample.labels.map {|kk,vv| "#{kk}=\"#{vv}\""}.join(", ") << '}'
           end
