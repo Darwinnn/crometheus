@@ -65,10 +65,6 @@ describe Crometheus::Counter do
       counter.reset
       counter.inc(10)
       counter.samples.should eq [Crometheus::Sample.new(value: 10.0)]
-
-      counter2 = Crometheus::Counter.new({:foo => "bar"})
-      counter2.inc(20)
-      counter2.samples.should eq [Crometheus::Sample.new(value: 20.0, labels: {:foo => "bar"})]
     end
   end
 

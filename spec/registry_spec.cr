@@ -6,8 +6,8 @@ require "../src/crometheus/counter"
 
 describe Crometheus::Registry do
   registry = Crometheus::Registry.new
-  gauge1 = Crometheus::Collector(Crometheus::Gauge).new(:gauge1, "docstring1", nil)
-  gauge2 = Crometheus::Collector(Crometheus::Gauge).new(:gauge2, "docstring2", nil)
+  gauge1 = Crometheus::Collector[Crometheus::Gauge, {:test}].new(:gauge1, "docstring1", nil)
+  gauge2 = Crometheus::Collector[Crometheus::Gauge].new(:gauge2, "docstring2", nil)
 
   describe "#register" do
     it "ingests collectors passed to it" do
@@ -17,7 +17,7 @@ describe Crometheus::Registry do
     end
 
     it "enforces unique collector names" do
-      gauge_dupe = Crometheus::Collector(Crometheus::Metric).new(:gauge2, "docstring3", nil)
+      gauge_dupe = Crometheus::Collector[Crometheus::Metric].new(:gauge2, "docstring3", nil)
       expect_raises {registry.register(gauge_dupe)}
     end
   end
@@ -36,23 +36,25 @@ describe Crometheus::Registry do
     registry.start_server
     sleep 0.5
 
-    counter = Crometheus::Collector(Crometheus::Counter).new(:counter1, "docstring3", registry)
-    counter.inc(1.2345)
+    counter = Crometheus::Collector[Crometheus::Counter, {:test,
+      :label1, :label2, :label3, :label4, :label5, :label6, :label7,
+      :label8, :label9, :label10
+    }].new(:counter1, "docstring3", registry)
     counter.labels(test: "many labels", label1: "one", label2: "two",
       label3: "three", label4: "four", label5: "five", label6: "six",
       label7: "seven", label8: "eight", label9: "nine", label10: "ten",
-    ).inc
+    ).inc(1.2345)
 
     gauge1.labels(test: "infinity").set(Float64::INFINITY)
     gauge1.labels(test: "-infinity").set(-Float64::INFINITY)
     gauge1.labels(test: "nan").set(-Float64::NAN)
     gauge1.labels(test: "large").set(9.876e54)
-    gauge1.labels(test: "unicode", face: "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧").set(42)
+    gauge1.labels(test: "unicode (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧").set(42)
 
-    histogram = Crometheus::Collector(Crometheus::Histogram).new(:histogram1, "docstring4", registry, buckets: [1.0, 2.0, 3.0])
+    histogram = Crometheus::Collector[Crometheus::Histogram].new(:histogram1, "docstring4", registry, buckets: [1.0, 2.0, 3.0])
     histogram.observe(1.5)
 
-    summary = Crometheus::Collector(Crometheus::Summary).new(:summary1, "docstring5", registry)
+    summary = Crometheus::Collector[Crometheus::Summary].new(:summary1, "docstring5", registry)
     summary.observe(100.0)
 
     response = HTTP::Client.get "http://localhost:5000/metrics"
@@ -60,19 +62,19 @@ describe Crometheus::Registry do
     expected_response = %<\
 # HELP spec_counter1 docstring3
 # TYPE spec_counter1 counter
-spec_counter1 1.2345
 spec_counter1{test="many labels", label1="one", label2="two", label3="three", \
 label4="four", label5="five", label6="six", label7="seven", label8="eight", \
-label9="nine", label10="ten"} 1.0
+label9="nine", label10="ten"} 1.2345
 # HELP spec_gauge1 docstring1
 # TYPE spec_gauge1 gauge
 spec_gauge1{test="infinity"} +Inf
 spec_gauge1{test="-infinity"} -Inf
 spec_gauge1{test="nan"} NaN
 spec_gauge1{test="large"} 9.876e+54
-spec_gauge1{test="unicode", face="(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
+spec_gauge1{test="unicode (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"} 42.0
 # HELP spec_gauge2 docstring2
 # TYPE spec_gauge2 gauge
+spec_gauge2 0.0
 # HELP spec_histogram1 docstring4
 # TYPE spec_histogram1 histogram
 spec_histogram1_count 1.0

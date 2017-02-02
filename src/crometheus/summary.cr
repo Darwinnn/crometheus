@@ -53,8 +53,8 @@ module Crometheus
     # If you aren't writing your own metric types, don't worry about
     # this. If you are, see `Metric#samples`.
     def samples(&block : Sample -> Nil) : Nil
-      yield make_sample(@count, suffix: "_count")
-      yield make_sample(@sum, suffix: "_sum")
+      yield Sample.new(@count, suffix: "_count")
+      yield Sample.new(@sum, suffix: "_sum")
     end
 
     # Returns `:summary`. See `Metric.type`.

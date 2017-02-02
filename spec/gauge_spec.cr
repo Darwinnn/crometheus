@@ -100,10 +100,6 @@ describe Crometheus::Gauge do
     it "yields appropriate Samples" do
       gauge.set(10)
       gauge.samples.should eq [Crometheus::Sample.new(value: 10.0)]
-
-      gauge2 = Crometheus::Gauge.new({:foo => "bar"})
-      gauge2.set(-20)
-      gauge2.samples.should eq [Crometheus::Sample.new(value: -20.0, labels: {:foo => "bar"})]
     end
   end
 end

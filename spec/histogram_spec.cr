@@ -3,10 +3,7 @@ require "../src/crometheus/histogram"
 
 describe Crometheus::Histogram do
   histogram1 = Crometheus::Histogram.new(buckets: [0.1, 0.25, 0.5, 1.0])
-  histogram2 = Crometheus::Histogram.new(
-    labels: {:foo => "bar"},
-    buckets: [1.0, 2.0, 7.0, 11.0]
-  )
+  histogram2 = Crometheus::Histogram.new(buckets: [1.0, 2.0, 7.0, 11.0])
 
   describe ".new" do
     it "allows buckets to be set by default" do
@@ -17,7 +14,6 @@ describe Crometheus::Histogram do
 
     it "allows buckets to be set explicitly" do
       Crometheus::Histogram.new(
-        labels: {:foo => "bar"},
         buckets: [1.0, 2.0, 7.0, 11.0]
       ).buckets.keys.should eq([1.0, 2.0, 7.0, 11.0, Float64::INFINITY])
     end
@@ -131,28 +127,24 @@ describe Crometheus::Histogram do
       end
 
       histogram2.samples.should eq [
-        Crometheus::Sample.new(2.0, suffix: "_count", labels: {:foo => "bar"}),
-        Crometheus::Sample.new(24.5, suffix: "_sum", labels: {:foo => "bar"}),
-        Crometheus::Sample.new(0.0, labels: {:foo => "bar", :le => "1.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(0.0, labels: {:foo => "bar", :le => "2.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(1.0, labels: {:foo => "bar", :le => "7.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(1.0, labels: {:foo => "bar", :le => "11.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(2.0, labels: {:foo => "bar", :le => "+Inf"}, suffix: "_bucket")
+        Crometheus::Sample.new(2.0, suffix: "_count"),
+        Crometheus::Sample.new(24.5, suffix: "_sum"),
+        Crometheus::Sample.new(0.0, labels: {:le => "1.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(0.0, labels: {:le => "2.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(1.0, labels: {:le => "7.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(1.0, labels: {:le => "11.0"}, suffix: "_bucket"),
+        Crometheus::Sample.new(2.0, labels: {:le => "+Inf"}, suffix: "_bucket")
       ]
     end
   end
 
   describe ".valid_label?" do
     it "disallows \"le\" as a label" do
-      expect_raises(ArgumentError) do
-        Crometheus::Histogram.new({:le => "x"})
-      end
+      Crometheus::Histogram.valid_label?(:le).should eq false
     end
 
     it "adheres to standard label restrictions" do
-      expect_raises(ArgumentError) do
-        Crometheus::Histogram.new({:"~" => "x"})
-      end
+      Crometheus::Histogram.valid_label?(:"~").should eq false
     end
   end
 end

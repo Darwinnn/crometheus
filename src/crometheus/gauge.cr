@@ -78,7 +78,7 @@ module Crometheus
     # If you aren't writing your own metric types, don't worry about
     # this. If you are, see `Metric#samples`.
     def samples(&block : Sample -> Nil) : Nil
-      yield make_sample(@value)
+      yield Sample.new(@value)
     end
   end
 end

@@ -56,22 +56,22 @@ describe Crometheus::Summary do
         Crometheus::Sample.new(suffix: "_sum", value: 0.4)
       ]
 
-      summary2 = Crometheus::Summary.new({:foo => "bar"})
+      summary2 = Crometheus::Summary.new
       summary2.observe(-20)
       summary2.samples.should eq [
-        Crometheus::Sample.new(suffix: "_count", value: 1.0, labels: {:foo => "bar"}),
-        Crometheus::Sample.new(suffix: "_sum", value: -20.0, labels: {:foo => "bar"})
+        Crometheus::Sample.new(suffix: "_count", value: 1.0),
+        Crometheus::Sample.new(suffix: "_sum", value: -20.0)
       ]
     end
   end
 
   describe ".valid_labels?" do
     it "disallows \"quantile\" as a label" do
-      expect_raises(ArgumentError) {Crometheus::Summary.new({:quantile => "x"})}
+      Crometheus::Summary.valid_label?(:quantile).should eq false
     end
 
     it "adheres to standard label restrictions" do
-      expect_raises(ArgumentError) {Crometheus::Summary.new({:__reserved => "x"})}
+      Crometheus::Summary.valid_label?(:__reserved).should eq false
     end
   end
 end

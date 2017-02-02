@@ -35,17 +35,6 @@ module Crometheus
 # See the source to the `Counter`, `Gauge`, `Histogram`, and `Summary`
 # classes for more detailed examples of how to subclass Metric.
   abstract class Metric
-    @labels : Hash(Symbol, String)
-
-    # Creates a new `Metric` with the given labels.
-    def initialize(@labels = {} of Symbol => String)
-      @labels.each_key do |label|
-        unless self.class.valid_label?(label)
-          raise ArgumentError.new("Invalid label: #{label}")
-        end
-      end
-    end
-
     # Returns the type of Prometheus metric this class represents.
     # Should be overridden to return exactly one of the following:
     # `:gauge`, `:counter`, `:summary`, `:histogram`, or `:untyped`.
@@ -80,17 +69,6 @@ module Crometheus
       return false if ss !~ /^[a-zA-Z_][a-zA-Z0-9_]*$/
       return false if ss.starts_with?("__")
       return true
-    end
-
-    # Convenience method for creating `Sample` objects.
-    # This simply calls `Crometheus::Sample.new` with the same arguments
-    # as are passed to it, except that `labels` gets merged into
-    # the `Metric`'s labels first. Call this from `#samples(&block :
-    # Sample)`.
-    def make_sample(value : Float64, labels = {} of Symbol => String, suffix = "")
-      Crometheus::Sample.new(value: value,
-                             labels: @labels.merge(labels),
-                             suffix: suffix)
     end
   end
 end

@@ -41,9 +41,8 @@ module Crometheus
     # will be added if it is not already part of the array. If left
     # unspecified, buckets will default to
     # `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]`.
-    def initialize(labels = {} of Symbol => String,
-                   buckets : Array(Float | Int) = @@default_buckets)
-      super(labels)
+    def initialize(buckets : Array(Float | Int) = @@default_buckets)
+      super()
       buckets.each do |le|
         @buckets[le.to_f64] = 0.0
       end
@@ -91,10 +90,10 @@ module Crometheus
     # If you aren't writing your own metric types, don't worry about
     # this. If you are, see `Metric#samples`.
     def samples(&block : Sample -> Nil)
-      yield make_sample(@buckets[Float64::INFINITY], suffix: "_count")
-      yield make_sample(@sum, suffix: "_sum")
+      yield Sample.new(@buckets[Float64::INFINITY], suffix: "_count")
+      yield Sample.new(@sum, suffix: "_sum")
       @buckets.each do |le, value|
-        yield make_sample(value, labels: {:le => Crometheus.stringify(le).to_s}, suffix: "_bucket")
+        yield Sample.new(value, labels: {:le => Crometheus.stringify(le).to_s}, suffix: "_bucket")
       end
     end
 

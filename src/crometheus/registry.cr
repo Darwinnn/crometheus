@@ -19,7 +19,7 @@ module Crometheus
   # ```
   class Registry
     # A list of all `Collector` objects being exposed by this registry.
-    getter collectors = [] of CollectorBase
+    getter collectors = [] of Collector
     # The host that the server should bind to.
     property host = "localhost"
     # The port that the server should bind to.
