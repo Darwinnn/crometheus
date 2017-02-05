@@ -43,9 +43,8 @@ describe Crometheus::Metric do
     end
 
     it "rejects unacceptable names" do
-      expect_raises(ArgumentError) do
-        Simple.new(:"123", "")
-      end
+      expect_raises(ArgumentError) {Simple.new(:"123", "")}
+      expect_raises(ArgumentError) {Simple.new(:"a&b", "")}
     end
   end
 

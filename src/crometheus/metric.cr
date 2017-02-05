@@ -45,7 +45,7 @@ module Crometheus
     def initialize(@name : Symbol,
                    @docstring : String,
                    register_with : Crometheus::Registry? = Crometheus.default_registry)
-      unless name.to_s =~ /[a-zA-Z_:][a-zA-Z0-9_:]*/
+      unless name.to_s =~ /^[a-zA-Z_:][a-zA-Z0-9_:]*$/
         raise ArgumentError.new("#{name} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
       end
 

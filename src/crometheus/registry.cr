@@ -95,7 +95,7 @@ module Crometheus
 
     # Sets `namespace` to `str`, after validating legality.
     def namespace=(str : String)
-      unless str =~ /[a-zA-Z_:][a-zA-Z0-9_:]*/
+      unless str =~ /^[a-zA-Z_:][a-zA-Z0-9_:]*$/ || str.empty?
         raise ArgumentError.new("#{str} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
       end
       @namespace = str

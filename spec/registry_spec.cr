@@ -126,7 +126,32 @@ spec_summary1_sum 100.0
       registry.stop_server
     end
 
-    pending "prefixes metrics with namespace" do
+    it "prefixes metrics with namespace" do
+      registry2 = Crometheus::Registry.new
+      Crometheus::Gauge.new(:my_gauge, "docstring", registry2).set 15.0
+      registry2.namespace = ""
+      registry2.start_server
+      sleep 0.2
+      HTTP::Client.get("http://localhost:5000/metrics").body.should eq %<\
+# HELP my_gauge docstring
+# TYPE my_gauge gauge
+my_gauge 15.0
+>
+      registry2.namespace = "ns"
+      HTTP::Client.get("http://localhost:5000/metrics").body.should eq %<\
+# HELP ns_my_gauge docstring
+# TYPE ns_my_gauge gauge
+ns_my_gauge 15.0
+>
+      registry2.stop_server
+    end
+  end
+
+  describe "namespace=" do
+    it "rejects improper names" do
+      registry = Crometheus::Registry.new
+      expect_raises(ArgumentError) {registry.namespace = "*" }
+      expect_raises(ArgumentError) {registry.namespace = "a$b" }
     end
   end
 end
