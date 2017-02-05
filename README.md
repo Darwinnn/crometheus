@@ -20,36 +20,50 @@ dependencies:
 ```crystal
 require "crometheus"
 
-# Create a gauge collector.
-gauge = Crometheus::Collector(Crometheus::Gauge).new(
-  :my_first_gauge,
-  "A sample gauge metric")
+# Create an unlabeled summary.
+summary = Crometheus::Summary.new(
+  :my_first_summary,
+  "A sample summary metric")
 
-# Create one labeled and one unlabeled time series.
-gauge.set 100.0
-gauge[label: "yes"].set 200
+# Observe some values.
+summary.observe 100
+summary.observe 200.0
+
+# Create a gauge, which will have labels "foo" and "bar".
+gauge = Crometheus::Gauge[:foo, :bar].new(
+  :my_first_gauge,
+  "A sample gauge metric, with labels")
+
+# Set some values.
+gauge[foo: "Hello", bar: "Anthony"].set 3.14159
+gauge[foo: "Goodbye", bar: "Clarice"].set -8e12
 
 # Access the default registry and start up the server.
 Crometheus.default_registry.run_server
 ```
-Then http://localhost:5000 to see your metrics:
+Then visit [http://localhost:5000]() to see your metrics:
 ```text
-# HELP my_first_gauge A sample gauge metric
+# HELP my_first_gauge A sample gauge metric, with labels
 # TYPE my_first_gauge gauge
-my_first_gauge 100.0
-my_first_gauge{label="yes"} 200.0
+my_first_gauge{foo="Hello", bar="Anthony"} 3.14159
+my_first_gauge{foo="Goodbye", bar="Clarice"} -8000000000000.0
+# HELP my_first_summary A sample summary metric
+# TYPE my_first_summary summary
+my_first_summary_count 2.0
+my_first_summary_sum 300.0
 ```
 
 The above is all the setup you need for straightforward use cases; all that's left is creating real metrics and instrumenting your code.
 See the reference documentation for the [Gauge](https://ezrast.gitlab.io/crometheus/Crometheus/Gauge.html), [Counter](https://ezrast.gitlab.io/crometheus/Crometheus/Counter.html), [Histogram](https://ezrast.gitlab.io/crometheus/Crometheus/Histogram.html), and [Summary](https://ezrast.gitlab.io/crometheus/Crometheus/Summary.html) classes to learn more about the available metric types.
-Always use these classes as a parameter for the generic [Collector](https://ezrast.gitlab.io/crometheus/Crometheus/Collector.html) type; avoid instantiating them yourself.
+The bracket notation `Gauge[:foo, :bar]` in the example above is a bit of macro magic that creates a [LabeledMetric](https://ezrast.gitlab.io/crometheus/Crometheus/Metric/LabeledMetric.html) with `Gauge` as a type parameter.
 A slightly more involved example is available at `examples/src/wordcounter.cr`.
 
 For server configuration see the [Registry](https://ezrast.gitlab.io/crometheus/Crometheus/Registry.html) class documentation.
-If you want to use multiple registries, e.g. to expose two different sets of metrics on different ports, you'll need to instantiate a second Registry object (other than the default) and pass it as a third argument to your Collector constructors.
+If you want to use multiple registries, e.g. to expose two different sets of metrics on different ports, you'll need to instantiate a second Registry object (other than the default) and pass it as a third argument to your metric constructors (after the name and docstring).
 
 If you want to define a custom metric type, see the documentation for the [Metric](https://ezrast.gitlab.io/crometheus/Crometheus/Metric.html) class, and inherit from that.
-Be sure your metric's method names don't collide with anything in [Collector](https://ezrast.gitlab.io/crometheus/Crometheus/Collector.html), since that class uses `forward_missing_to` to pretend it's a metric.
+
+Alternately, you can just dive into the [API Documentation](https://ezrast.gitlab.io/crometheus) right from the top.
 
 ## Author
 

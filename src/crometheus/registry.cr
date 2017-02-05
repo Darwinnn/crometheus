@@ -1,14 +1,14 @@
 require "http/server"
-require "./collector"
+require "./metric"
 require "./stringify"
 
 module Crometheus
   # The `Registry` class is responsible for aggregating samples from all
-  # configured collectors and exposing metric data to Prometheus via an
-  # HTTP server.
+  # configured metrics and exposing data to Prometheus via an HTTP
+  # server.
   #
   # Crometheus automatically instantiates a `Registry` for you, and
-  # `Collector` registers with it by default. This means that for most
+  # `Metric` registers with it by default. This means that for most
   # applications, this is all it takes to get an HTTP server up and
   # serving:
   # ```
@@ -18,8 +18,8 @@ module Crometheus
   # Crometheus.default_registry.start_server
   # ```
   class Registry
-    # A list of all `Collector` objects being exposed by this registry.
-    getter collectors = [] of Collector
+    # A list of all `Metric` objects being exposed by this registry.
+    getter metrics = [] of Metric
     # The host that the server should bind to.
     property host = "localhost"
     # The port that the server should bind to.
@@ -30,22 +30,22 @@ module Crometheus
     @server : HTTP::Server? = nil
     @server_on = false
 
-    # Adds a `Collector` to this registry. The collector's metrics will
-    # then show up whenever the server is scraped. Collectors call
-    # `#register` automatically in their constructors, so manual
-    # invocation is not usually required.
-    def register(collector)
-      if @collectors.find {|coll| coll.name == collector.name}
-        raise Exception.new "Registered collectors must have unique names"
+    # Adds a `Metric` to this registry. The metric's samples will then
+    # show up whenever the server is scraped. Metrics call `#register`
+    # automatically in their constructors, so manual invocation is not
+    # usually required.
+    def register(metric)
+      if @metrics.find {|mm| mm.name == metric.name}
+        raise ArgumentError.new "Registered metrics must have unique names"
       end
-      @collectors << collector
-      @collectors.sort_by! {|coll| coll.name}
+      @metrics << metric
+      @metrics.sort_by! {|mm| mm.name}
     end
 
-    # Removes a `Collector` from the registry. The `Collector` keeps its
-    # metrics and can be re-registered later.
-    def unregister(collector)
-      @collectors.delete(collector)
+    # Removes a `Metric` from the registry. The `Metric` keeps its
+    # state and can be re-registered later.
+    def unregister(metric)
+      @metrics.delete(metric)
     end
 
     # Spawns a new fiber that serves HTTP connections on `host` and
@@ -75,8 +75,8 @@ module Crometheus
 
     # Creates an `HTTP::Server` object bound to `host` and `port`
     # and begins serving metrics. Returns `true` once the server is
-    # stopped. Returns `false` immediately if a server is already
-    # listening.
+    # stopped. Returns `false` immediately if this registry is already
+    # serving.
     def run_server
       return false if @server_on
       @server = server = HTTP::Server.new(@host, @port) do |context|
@@ -103,11 +103,12 @@ module Crometheus
 
     private def generate_text_format(io)
       prefix = namespace.empty? ? "" : namespace + "_"
-      @collectors.each do |coll|
-        io << "# HELP " << prefix << coll.name << ' ' << coll.docstring << '\n'
-        io << "# TYPE " << prefix << coll.name << ' ' << coll.type.to_s << '\n'
-        coll.collect do |sample|
-          io << prefix << coll.name << sample.suffix
+      @metrics.each do |mm|
+        io << "# HELP " << prefix << mm.name << ' ' << mm.docstring << '\n'
+        io << "# TYPE " << prefix << mm.name << ' ' <<
+          (mm.class.type.as?(Metric::Type) || "untyped") << '\n'
+        mm.samples do |sample|
+          io << prefix << mm.name << sample.suffix
           unless sample.labels.empty?
             io << '{' << sample.labels.map {|kk,vv| "#{kk}=\"#{vv}\""}.join(", ") << '}'
           end
@@ -118,7 +119,7 @@ module Crometheus
   end
 
   @@default_registry = Registry.new
-  # Returns the default `Registry`. All new `Collector` instances get
+  # Returns the default `Registry`. All new `Metric` instances get
   # registered to this by default.
   def self.default_registry
     @@default_registry

@@ -1,15 +1,12 @@
 require "./metric"
+require "./registry"
 
 module Crometheus
   # Counter is a `Metric` type that stores a single value internally.
   # This value can be reset to zero, but otherwises increases
   # monotonically, and only when `#inc` is called.
-  #
-  # `Counter` should generally not be instantiated directly. Instantiate
-  # `Collector(Counter)` instead.
-  #
   #```
-  # flowers_planted = Crometheus::Collector(Crometheus::Counter).new(
+  # flowers_planted = Crometheus::Counter.new(
   #   :flowers_planted, "Number of flowers planted")
   # flowers_planted.inc 10
   # flowers_planted.inc
@@ -37,21 +34,18 @@ module Crometheus
 
     # Yields to the block, calling #inc if an exception is raised.
     # The exception is always re-raised.
-    #
-    # Example:
     # ```
     # require "crometheus/counter"
-    # require "crometheus/collector"
     # include Crometheus
     #
-    # def unsafe_code
+    # def risky_code
     #   x = 1 / [1, 0].sample
     # end
     #
-    # counter = Collector(Counter).new :example, ""
+    # counter = Counter.new :example, ""
     # 100.times do
     #   begin
-    #     counter.count_exceptions {unsafe_code}
+    #     counter.count_exceptions {risky_code}
     #   rescue DivisionByZero
     #   end
     # end
@@ -70,9 +64,9 @@ module Crometheus
       yield Sample.new(@value)
     end
 
-    # Returns `:counter`. See `Metric.type`.
+    # Returns `Type::Counter`. See `Metric.type`.
     def self.type
-      :counter
+      Type::Counter
     end
 
     # Yields to the block, incrementing the given counter when an
@@ -84,7 +78,7 @@ module Crometheus
       begin
         {{yield}}
       rescue ex : {{ex_type}}
-        counter.inc
+        {{counter}}.inc
         raise ex
       end
     end

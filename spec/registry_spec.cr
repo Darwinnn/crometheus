@@ -1,61 +1,72 @@
 require "./spec_helper"
 require "../src/crometheus/registry"
-require "../src/crometheus/collector"
 require "../src/crometheus/gauge"
 require "../src/crometheus/counter"
+require "../src/crometheus/histogram"
+require "../src/crometheus/summary"
 
 describe Crometheus::Registry do
-  registry = Crometheus::Registry.new
-  gauge1 = Crometheus::Collector[Crometheus::Gauge, {:test}].new(:gauge1, "docstring1", nil)
-  gauge2 = Crometheus::Collector[Crometheus::Gauge].new(:gauge2, "docstring2", nil)
-
   describe "#register" do
-    it "ingests collectors passed to it" do
-      registry.register(gauge1)
-      registry.register(gauge2)
-      registry.collectors.should eq [gauge1, gauge2]
+    it "ingests metrics passed to it" do
+      registry = Crometheus::Registry.new
+      gauge1 = Crometheus::Gauge.new(:a, "", nil)
+      gauge2 = Crometheus::Gauge.new(:b, "", nil)
+      registry.register gauge1
+      registry.register gauge2
+      registry.metrics.should eq [gauge1, gauge2]
     end
 
-    it "enforces unique collector names" do
-      gauge_dupe = Crometheus::Collector[Crometheus::Metric].new(:gauge2, "docstring3", nil)
-      expect_raises {registry.register(gauge_dupe)}
+    it "enforces unique metric names" do
+      registry = Crometheus::Registry.new
+      gauge1 = Crometheus::Gauge.new(:a, "", nil)
+      gauge2 = Crometheus::Gauge.new(:a, "", nil)
+      registry.register gauge1
+      expect_raises(ArgumentError) {registry.register gauge2}
     end
   end
 
   describe "#unregister" do
-    it "deletes collectors from the registry" do
-      registry.unregister(gauge1)
-      registry.collectors.should eq [gauge2]
+    it "deletes metrics from the registry" do
+      registry = Crometheus::Registry.new
+      gauge1 = Crometheus::Gauge.new(:a, "", nil)
+      gauge2 = Crometheus::Gauge.new(:b, "", nil)
+      registry.register gauge1
+      registry.register gauge2
+      registry.unregister gauge1
+      registry.metrics.should eq [gauge2]
     end
   end
 
-  registry.register(gauge1)
-
   describe "#start_server and #stop_server" do
+    registry = Crometheus::Registry.new
     registry.namespace = "spec"
-    registry.start_server
-    sleep 0.5
 
-    counter = Crometheus::Collector[Crometheus::Counter, {:test,
+    gauge1 = Crometheus::Gauge[:test].new(:gauge1, "docstring1", registry)
+    gauge2 = Crometheus::Gauge.new(:gauge2, "docstring2", registry)
+
+    counter = Crometheus::Counter[:test,
       :label1, :label2, :label3, :label4, :label5, :label6, :label7,
       :label8, :label9, :label10
-    }].new(:counter1, "docstring3", registry)
-    counter.labels(test: "many labels", label1: "one", label2: "two",
+    ].new(:counter1, "docstring3", registry)
+    counter[test: "many labels", label1: "one", label2: "two",
       label3: "three", label4: "four", label5: "five", label6: "six",
-      label7: "seven", label8: "eight", label9: "nine", label10: "ten",
-    ).inc(1.2345)
+      label7: "seven", label8: "eight", label9: "nine", label10: "ten"
+    ].inc(1.2345)
 
-    gauge1.labels(test: "infinity").set(Float64::INFINITY)
-    gauge1.labels(test: "-infinity").set(-Float64::INFINITY)
-    gauge1.labels(test: "nan").set(-Float64::NAN)
-    gauge1.labels(test: "large").set(9.876e54)
-    gauge1.labels(test: "unicode (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧").set(42)
+    gauge1[test: "infinity"].set(Float64::INFINITY)
+    gauge1[test: "-infinity"].set(-Float64::INFINITY)
+    gauge1[test: "nan"].set(-Float64::NAN)
+    gauge1[test: "large"].set(9.876e54)
+    gauge1[test: "unicode (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"].set(42)
 
-    histogram = Crometheus::Collector[Crometheus::Histogram].new(:histogram1, "docstring4", registry, buckets: [1.0, 2.0, 3.0])
+    histogram = Crometheus::Histogram.new(:histogram1, "docstring4", registry, buckets: [1.0, 2.0, 3.0])
     histogram.observe(1.5)
 
-    summary = Crometheus::Collector[Crometheus::Summary].new(:summary1, "docstring5", registry)
+    summary = Crometheus::Summary.new(:summary1, "docstring5", registry)
     summary.observe(100.0)
+
+    registry.start_server
+    sleep 0.5
 
     response = HTTP::Client.get "http://localhost:5000/metrics"
     response.status_code.should eq 200
@@ -113,6 +124,9 @@ spec_summary1_sum 100.0
         a.should eq b
       end
       registry.stop_server
+    end
+
+    pending "prefixes metrics with namespace" do
     end
   end
 end

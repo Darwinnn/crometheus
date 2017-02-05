@@ -1,8 +1,8 @@
 module Crometheus
   # An instantaneous datum from a metric. `Metric` types
   # should yield one or more of these when `Metric#sample` is called.
-  # `Collector#collect` aggregates samples from metrics, and `Registry`
-  # interpolates their values into an appropriate exposition format.
+  # `Registry` interpolates their values into an appropriate exposition
+  # format.
   #
   # Each Sample corresponds to one line item in the exposed metric
   # data. Thus, counters and gauges always yield a single sample, while
@@ -26,10 +26,6 @@ module Crometheus
     # https://groups.google.com/d/msg/prometheus-developers/p2SBdIbT4lQ/YYSQcpS0AgAJ
 
     def initialize(@value, @labels = {} of Symbol => String, @suffix = "")
-    end
-
-    def to_s(io)
-      io <<  '[' << @suffix << @labels << ' ' << @value << ']'
     end
 
   end
