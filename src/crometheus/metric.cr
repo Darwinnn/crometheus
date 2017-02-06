@@ -5,12 +5,12 @@ module Crometheus
 # `Metric` is the base class for individual metrics types.
 #
 # If you want to create your own custom metric types, you'll need to
-# subclass `Metric`. `#samples(&block : Sample -> Nil)` is
-# the only abstract methods you'll need to override; then you will also
-# need to implement your custom instrumentation. You'll probably also
-# want to define `.type` on your new class; it should return a member of
-# enum `Type`. The following is a perfectly serviceable, if useless,
-# metric type:
+# subclass `Metric`.
+# `#samples` is the only abstract method you'll need to override; then
+# you will also need to implement your custom instrumentation.
+# You'll probably also want to define `.type` on your new class; it
+# should return a member of enum `Type`.
+# The following is a perfectly serviceable, if useless, metric type:
 #```
 # require "crometheus/metric"
 #
@@ -38,10 +38,10 @@ module Crometheus
     # metric.
     getter docstring : String
 
-    # Initializes `name` and `docstring`, then passes self to
-    # `#register` on the `default_registry`, or on the passed
-    # `Registry`, if not `nil`. Raises an `ArgumentError` if `name`
-    # does not conform to Prometheus' standards.
+    # Initializes `name` and `docstring`, then passes `self` to
+    # `register_with.register` if not `nil`.
+    # Raises an `ArgumentError` if `name` does not conform to
+    # Prometheus' standards.
     def initialize(@name : Symbol,
                    @docstring : String,
                    register_with : Crometheus::Registry? = Crometheus.default_registry)
@@ -49,9 +49,7 @@ module Crometheus
         raise ArgumentError.new("#{name} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
       end
 
-      if register_with
-        register_with.register(self)
-      end
+      register_with.try &.register(self)
     end
 
     # Yields one `Sample` for each time series this metric represents.
@@ -61,7 +59,8 @@ module Crometheus
 
     # Returns the type of Prometheus metric this class represents.
     # Should be overridden to return the appropriate member of `Type`.
-    # Called by `Registry` to determine metric type.
+    # Called by `Registry` to determine metric type to report to
+    # Prometheus.
     # Users generally do not need to call this.
     def self.type
       Type::Untyped
@@ -103,13 +102,17 @@ module Crometheus
 
     # `LabeledMetric` is a generic type that acts as a collection of
     # `Metric` objects exported under the same metric name, but with
-    # different labelsets. You generally won't refer to `LabeledMetric`
-    # directly in your code; instead, use `Metric.[]` to generate an
-    # appropriate `LabeledMetric` type.
+    # different labelsets.
+    # It takes two type parameters, one for the type of `Metric` to
+    # to collect, and one `NamedTuple` mapping label names to `String`
+    # values.
+    # Since this is cumbersome to type out, you generally won't refer to
+    # `LabeledMetric` directly in your code; instead, use `Metric.[]` to
+    # generate an appropriate `LabeledMetric` type.
     #
-    # Label names are stored as a `NamedTuple` that maps `Symbol`s to
-    # `String`s. This allows the compiler to enforce the constraint that
-    # every metric in the collection have the same set of label names.
+    # Storing labelsets as `NamedTuple`s allows the compiler to enforce
+    # the constraint that every metric in the collection have the same
+    # set of label names.
     class LabeledMetric(LabelType, MetricType) < Metric
       @metrics : Hash(LabelType, MetricType)
 
@@ -130,6 +133,7 @@ module Crometheus
       end
 
       # Fetches the metric with the given labelset.
+      # Takes one keyword argument for each of this metric's labels.
       def [](**labels : **LabelType)
         @metrics[labels]
       end
@@ -141,6 +145,7 @@ module Crometheus
       end
 
       # Deletes the metric with the given labelset from the collection.
+      # Takes one keyword argument for each of this metric's labels.
       def remove(**labels : **LabelType)
         @metrics.delete(labels)
       end
@@ -157,6 +162,7 @@ module Crometheus
 
       # Iteratively calls `samples` on each metric in the collection,
       # yielding each received `Sample`.
+      # See `Metric#samples`.
       def samples(&block : Sample -> Nil)
         @metrics.each do |labels, metric|
           metric.samples {|ss| ss.labels.merge!(labels.to_h); yield ss}
@@ -166,8 +172,10 @@ module Crometheus
 
     end
 
-    # With a series of `Symbol`s passed as arguments, returns a
-    # `LabeledMetric` class object with the appropriate type parameters.
+    # Convenience macro for generating a `LabeledMetric` with
+    # appropriate type parameters.
+    # Takes any number of `Symbol`s as arguments, returning a
+    # `LabeledMetric` class object with those arguments as label names.
     #```
     # require "crometheus/gauge"
     #
@@ -175,7 +183,7 @@ module Crometheus
     # ages[first_name: "Jane", last_name: "Doe"].set 32
     # ages[first_name: "Sally", last_name: "Generic"].set 49
     # # ages[first_name: "Jay", middle_initial: "R", last_name: "Hacker"].set 46
-    # # => compiler error: "no overload matches..."
+    # # => compiler error; label names don't match.
     #```
     macro [](*labels)
       Crometheus::Metric::LabeledMetric(

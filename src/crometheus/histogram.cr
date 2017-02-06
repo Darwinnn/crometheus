@@ -8,6 +8,8 @@ module Crometheus
   # bucket with a bound equal to or greater than the observed value is
   # incremented. A running sum of all observed values is also tracked.
   #```
+  # require "crometheus/histogram"
+  #
   # buckets = Crometheus::Histogram.linear_buckets(60, 30, 10)
   # # => [60.0, 90.0, 120.0, ... , 300.0, 330.0, Infinity]
   #
@@ -31,12 +33,13 @@ module Crometheus
     # A running sum of all observed values.
     getter sum = 0.0
 
-    # In addition to the standard arguments for `Metric#initialize`,
-    # takes an array that defines the range of each bucket. The
-    # `.linear_buckets` and `.geometric_buckets` convenience methods may
-    # be used to generate an appropriate array. A bucket for Infinity
-    # will be added if it is not already part of the array. If left
-    # unspecified, buckets will default to
+    # In addition to the standard arguments for `Metric.new`, takes an
+    # array that defines the range of each bucket.
+    # The `.linear_buckets` and `.geometric_buckets` convenience methods
+    # may be used to generate an appropriate array.
+    # A bucket for Infinity will be added if it is not already part of
+    # the array.
+    # If left unspecified, buckets will default to
     # `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, +Inf]`.
     def initialize(name : Symbol,
                    docstring : String,
@@ -102,7 +105,7 @@ module Crometheus
 
     # Returns an array of linearly-increasing bucket upper bounds
     # suitable for passing into the constructor of `Histogram`.
-    # `bucket_count` includes the Infinity bucket.
+    # `bucket_count` excludes the Infinity bucket.
     # ```
     # require "crometheus/histogram"
     # include Crometheus
@@ -125,7 +128,7 @@ module Crometheus
 
     # Returns an array of geometrically-increasing bucket upper bounds
     # suitable for passing into the constructor of `Histogram`.
-    # `bucket_count` includes the Infinity bucket.
+    # `bucket_count` excludes the Infinity bucket.
     # ```
     # require "crometheus/histogram"
     # include Crometheus

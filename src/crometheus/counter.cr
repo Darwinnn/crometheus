@@ -6,6 +6,8 @@ module Crometheus
   # This value can be reset to zero, but otherwises increases
   # monotonically, and only when `#inc` is called.
   #```
+  # require "crometheus/counter"
+  #
   # flowers_planted = Crometheus::Counter.new(
   #   :flowers_planted, "Number of flowers planted")
   # flowers_planted.inc 10
@@ -73,8 +75,8 @@ module Crometheus
     # exception matching the given type is raised. At a future date,
     # this macro will be deprecated and its functionality folded into
     # `#count_exceptions`.
+    # Pending https://github.com/crystal-lang/crystal/issues/2060.
     macro count_exceptions_of_type(counter, ex_type, &block)
-    # https://github.com/crystal-lang/crystal/issues/2060
       begin
         {{yield}}
       rescue ex : {{ex_type}}

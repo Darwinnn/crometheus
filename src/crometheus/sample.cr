@@ -9,7 +9,7 @@ module Crometheus
   # summaries and histograms yield more depending on how many
   # buckets/quantiles are configured.
   #
-  # A `Metric` named `"fruit"` that yields a `Sample` like this:
+  # A `Metric` named `:fruit` that yields a `Sample` like this:
   # ```
   # Sample.new(12.0, labels: {:species => "banana"}, suffix: "_count")
   # ```

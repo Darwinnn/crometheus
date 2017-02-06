@@ -4,8 +4,7 @@ require "./stringify"
 
 module Crometheus
   # The `Registry` class is responsible for aggregating samples from all
-  # configured metrics and exposing data to Prometheus via an HTTP
-  # server.
+  # metrics and exposing data to Prometheus via an HTTP server.
   #
   # Crometheus automatically instantiates a `Registry` for you, and
   # `Metric` registers with it by default. This means that for most
@@ -21,11 +20,12 @@ module Crometheus
     # A list of all `Metric` objects being exposed by this registry.
     getter metrics = [] of Metric
     # The host that the server should bind to.
+    # Defaults to `"localhost"`.
     property host = "localhost"
-    # The port that the server should bind to.
+    # The port that the server should bind to. Defaults to `5000`.
     property port = 5000
-    # `namespace`, if non-empty, will be prefixed to all metric names,
-    # separated by an underscore.
+    # If non-empty, will be prefixed to all metric names, separated by
+    # an underscore.
     getter namespace = ""
     @server : HTTP::Server? = nil
     @server_on = false
@@ -93,7 +93,8 @@ module Crometheus
       return true
     end
 
-    # Sets `namespace` to `str`, after validating legality.
+    # Sets `namespace` to `str`, raising an `ArgumentError` if `str` is
+    # not legal for a Prometheus metric name.
     def namespace=(str : String)
       unless str =~ /^[a-zA-Z_:][a-zA-Z0-9_:]*$/ || str.empty?
         raise ArgumentError.new("#{str} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
