@@ -1,6 +1,6 @@
 # crometheus
 
-Crometheus is a [Prometheus](https://prometheus.io/) client library for instrumenting programs written in the [Crystal programming language](https://crystal-lang.org/).
+[Crometheus](https://gitlab.com/ezrast/crometheus) is a [Prometheus](https://prometheus.io/) client library for instrumenting programs written in the [Crystal programming language](https://crystal-lang.org/).
 For the most part, Crometheus assumes a basic familiarity with Prometheus.
 To that end, readers may wish to skim the official documentation on Prometheus' [data model](https://prometheus.io/docs/concepts/data_model/), [metric types](https://prometheus.io/docs/concepts/metric_types/), and [text exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-format-details).
 
@@ -41,7 +41,7 @@ gauge[foo: "Goodbye", bar: "Clarice"].set -8e12
 # Access the default registry and start up the server.
 Crometheus.default_registry.run_server
 ```
-Then visit [http://localhost:5000]() to see your metrics:
+Then visit [http://localhost:5000](http://localhost:5000) to see your metrics:
 ```text
 # HELP my_first_gauge A sample gauge metric, with labels
 # TYPE my_first_gauge gauge
