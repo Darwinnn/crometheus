@@ -1,4 +1,5 @@
 require "./sample"
+require "./registry"
 
 module Crometheus
 # `Metric` is the base class for individual metrics types.
@@ -7,63 +8,63 @@ module Crometheus
 # subclass `Metric`. `#samples(&block : Sample -> Nil)` is
 # the only abstract methods you'll need to override; then you will also
 # need to implement your custom instrumentation. You'll probably also
-# want to define `.type` on your new class; it must return one of
-# `:counter`, `:gauge`, `:histogram`, `:summary`, or `:untyped`. The
-# following is a perfectly serviceable, if useless, metric type:
+# want to define `.type` on your new class; it should return a member of
+# enum `Type`. The following is a perfectly serviceable, if useless,
+# metric type:
 #```
 # require "crometheus/metric"
 #
 # class Randometric < Crometheus::Metric
 #   def self.type
-#     :gauge
+#     Type::Gauge
 #   end
 #
 #   def samples(&block : Crometheus::Sample -> Nil)
-#     yield make_sample(get_value())
+#     yield Crometheus::Sample.new my_value_method
 #   end
 #
-#   def get_value()
+#   def my_value_method
 #     rand(10).to_f64
 #   end
 # end
 #```
-# If your subclass's constructor needs to take arguments, make them
-# keyword arguments. `Collector` will pass any unrecognized keyword
-# arguments to the constructor of any `Metric` objects it instantiates.
-# For example, `Histogram` configures its buckets this way.
-#
 # See the source to the `Counter`, `Gauge`, `Histogram`, and `Summary`
-# classes for more detailed examples of how to subclass Metric.
+# classes for more detailed examples of how to subclass `Metric`.
   abstract class Metric
-    @labels : Hash(Symbol, String)
+    # The name of the metric. This will be converted to a `String` and
+    # exported to Prometheus.
+    getter name : Symbol
+    # The docstring that appears in the `HELP` line of the exported
+    # metric.
+    getter docstring : String
 
-    # Creates a new `Metric` with the given labels.
-    def initialize(@labels = {} of Symbol => String)
-      @labels.each_key do |label|
-        unless self.class.valid_label?(label)
-          raise ArgumentError.new("Invalid label: #{label}")
-        end
+    # Initializes `name` and `docstring`, then passes self to
+    # `#register` on the `default_registry`, or on the passed
+    # `Registry`, if not `nil`. Raises an `ArgumentError` if `name`
+    # does not conform to Prometheus' standards.
+    def initialize(@name : Symbol,
+                   @docstring : String,
+                   register_with : Crometheus::Registry? = Crometheus.default_registry)
+      unless name.to_s =~ /^[a-zA-Z_:][a-zA-Z0-9_:]*$/
+        raise ArgumentError.new("#{name} does not match [a-zA-Z_:][a-zA-Z0-9_:]*")
+      end
+
+      if register_with
+        register_with.register(self)
       end
     end
 
-    # Returns the type of Prometheus metric this class represents.
-    # Should be overridden to return exactly one of the following:
-    # `:gauge`, `:counter`, `:summary`, `:histogram`, or `:untyped`.
-    def self.type : Symbol
-      :untyped
-    end
-
-    # Yields a `Sample` object for each data point this metric returns.
-    # This method should `yield` any number of `Sample` objects, one
-    # sample per `yield`. See `#make_sample`.
+    # Yields one `Sample` for each time series this metric represents.
+    # Called by `Registry` to collect data for exposition.
+    # Users generally do not need to call this.
     abstract def samples(&block : Sample -> Nil) : Nil
 
-    # As `#samples(&block : Sample -> Nil)`, but appends `Sample`
-    # objects to the given Array rather than yielding them. Don't
-    # override this `samples`; it comes for free with the other one.
-    def samples(ary : Array(Sample) = Array(Sample).new) : Array(Sample)
-      samples {|ss| ary << ss}
-      return ary
+    # Returns the type of Prometheus metric this class represents.
+    # Should be overridden to return the appropriate member of `Type`.
+    # Called by `Registry` to determine metric type.
+    # Users generally do not need to call this.
+    def self.type
+      Type::Untyped
     end
 
     # Called by `#initialize` to validate that this `Metric`'s labels
@@ -82,15 +83,109 @@ module Crometheus
       return true
     end
 
-    # Convenience method for creating `Sample` objects.
-    # This simply calls `Crometheus::Sample.new` with the same arguments
-    # as are passed to it, except that `labels` gets merged into
-    # the `Metric`'s labels first. Call this from `#samples(&block :
-    # Sample)`.
-    def make_sample(value : Float64, labels = {} of Symbol => String, suffix = "")
-      Crometheus::Sample.new(value: value,
-                             labels: @labels.merge(labels),
-                             suffix: suffix)
+    enum Type
+      Gauge
+      Counter
+      Histogram
+      Summary
+      Untyped
+
+      def to_s(io : IO)
+        io << case self
+        when .gauge?; "gauge"
+        when .counter?; "counter"
+        when .histogram?; "histogram"
+        when .summary?; "summary"
+        else; "untyped"
+        end
+      end
+    end
+
+    # `LabeledMetric` is a generic type that acts as a collection of
+    # `Metric` objects exported under the same metric name, but with
+    # different labelsets. You generally won't refer to `LabeledMetric`
+    # directly in your code; instead, use `Metric.[]` to generate an
+    # appropriate `LabeledMetric` type.
+    #
+    # Label names are stored as a `NamedTuple` that maps `Symbol`s to
+    # `String`s. This allows the compiler to enforce the constraint that
+    # every metric in the collection have the same set of label names.
+    class LabeledMetric(LabelType, MetricType) < Metric
+      @metrics : Hash(LabelType, MetricType)
+
+      # Creates a `LabeledMetric`, saving `**metric_params` for passage
+      # to the constructors of each metric in the collection.
+      def initialize(name : Symbol,
+                     docstring : String,
+                     register_with : Crometheus::Registry? = Crometheus.default_registry,
+                     **metric_params)
+        super(name, docstring, register_with)
+
+        @metrics = Hash(LabelType, MetricType).new do |hh,kk|
+          hh[kk] = MetricType.new(**metric_params,
+                                  name: name,
+                                  docstring: docstring,
+                                  register_with: nil)
+        end
+      end
+
+      # Fetches the metric with the given labelset.
+      def [](**labels : **LabelType)
+        @metrics[labels]
+      end
+
+      # Returns an array of every labelset currently ascribed to a
+      # metric.
+      def get_labels : Array(LabelType)
+        return @metrics.keys
+      end
+
+      # Deletes the metric with the given labelset from the collection.
+      def remove(**labels : **LabelType)
+        @metrics.delete(labels)
+      end
+
+      # Deletes all metrics from the collection.
+      def clear
+        @metrics.clear
+      end
+
+      # Returns `MetricType.type`. See `Metric::Type`.
+      def self.type
+        MetricType.type
+      end
+
+      # Iteratively calls `samples` on each metric in the collection,
+      # yielding each received `Sample`.
+      def samples(&block : Sample -> Nil)
+        @metrics.each do |labels, metric|
+          metric.samples {|ss| ss.labels.merge!(labels.to_h); yield ss}
+        end
+        return nil
+      end
+
+    end
+
+    # With a series of `Symbol`s passed as arguments, returns a
+    # `LabeledMetric` class object with the appropriate type parameters.
+    #```
+    # require "crometheus/gauge"
+    #
+    # ages = Crometheus::Gauge[:first_name, last_name].new(:age, "Age of person")
+    # ages[first_name: "Jane", last_name: "Doe"].set 32
+    # ages[first_name: "Sally", last_name: "Generic"].set 49
+    # # ages[first_name: "Jay", middle_initial: "R", last_name: "Hacker"].set 46
+    # # => compiler error: "no overload matches..."
+    #```
+    macro [](*labels)
+      Crometheus::Metric::LabeledMetric(
+        NamedTuple(
+          {% for label in labels %}
+            {{ label.id }}: String,
+          {% end %}
+        ),
+        {{@type}}
+      )
     end
   end
 end

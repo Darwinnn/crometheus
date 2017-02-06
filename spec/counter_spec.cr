@@ -2,14 +2,14 @@ require "./spec_helper"
 require "../src/crometheus/counter"
 
 describe Crometheus::Counter do
-  counter = Crometheus::Counter.new
-
-  it "defaults new counters to 0.0" do
+  it "defaults to 0.0" do
+    counter = Crometheus::Counter.new(:x, "", nil)
     counter.get.should eq 0.0
   end
 
   describe "#inc" do
     it "increments the value" do
+      counter = Crometheus::Counter.new(:x, "", nil)
       counter.inc
       counter.get.should eq 1.0
       counter.inc 9.0
@@ -17,12 +17,15 @@ describe Crometheus::Counter do
     end
 
     it "raises on negative numbers" do
-      expect_raises(ArgumentError) {counter.inc -1.0}
+      expect_raises(ArgumentError) do
+        Crometheus::Counter.new(:x, "", nil).inc -1.0
+      end
     end
   end
 
   describe "#reset" do
     it "resets the value to zero" do
+      counter = Crometheus::Counter.new(:x, "", nil)
       counter.inc
       counter.reset
       counter.get.should eq 0.0
@@ -31,29 +34,32 @@ describe Crometheus::Counter do
 
   describe "#count_exceptions" do
     it "increments when the block raises an exception" do
-      counter.reset
+      counter = Crometheus::Counter.new(:x, "", nil)
       10.times do |ii|
         begin
-          counter.count_exceptions {raise ArgumentError.new if ii % 2 == 0}
-        rescue ex : ArgumentError
+          counter.count_exceptions {raise CrometheusTestException.new if ii % 2 == 0}
+        rescue ex : CrometheusTestException
         end
       end
       counter.get.should eq 5.0
     end
 
     it "re-raises the exception" do
-      expect_raises(ArgumentError) {counter.count_exceptions {raise ArgumentError.new}}
+      expect_raises(CrometheusTestException) do
+        Crometheus::Counter.new(:x, "", nil).count_exceptions {
+          raise CrometheusTestException.new}
+      end
     end
   end
 
   describe ".count_exceptions_of_type" do
     it "increment when the block raises the given type of exception" do
-      exceptions = [ArgumentError.new, KeyError.new, DivisionByZero.new,
-        ArgumentError.new, ArgumentError.new]
-      counter.reset
+      counter = Crometheus::Counter.new(:x, "", nil)
+      exceptions = [CrometheusTestException.new, KeyError.new, DivisionByZero.new,
+        CrometheusTestException.new, CrometheusTestException.new]
       exceptions.each do |ex|
         expect_raises do
-          Crometheus::Counter.count_exceptions_of_type(counter, ArgumentError) {raise ex}
+          Crometheus::Counter.count_exceptions_of_type(counter, CrometheusTestException) {raise ex}
         end
       end
       counter.get.should eq 3.0
@@ -62,13 +68,9 @@ describe Crometheus::Counter do
 
   describe "#samples" do
     it "returns an appropriate Array of Samples" do
-      counter.reset
+      counter = Crometheus::Counter.new(:x, "", nil)
       counter.inc(10)
-      counter.samples.should eq [Crometheus::Sample.new(value: 10.0)]
-
-      counter2 = Crometheus::Counter.new({:foo => "bar"})
-      counter2.inc(20)
-      counter2.samples.should eq [Crometheus::Sample.new(value: 20.0, labels: {:foo => "bar"})]
+      get_samples(counter).should eq [Crometheus::Sample.new(10.0)]
     end
   end
 

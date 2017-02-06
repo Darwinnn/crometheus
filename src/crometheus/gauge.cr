@@ -2,13 +2,9 @@ require "./metric"
 
 module Crometheus
   # Gauge is a `Metric` type that stores a single value internally.
-  # This value can be modified arbitrarily via instance methods.
-  #
-  # `Gauge` should generally not be instantiated directly. Instantiate
-  # `Collector(Gauge)` instead.
-  #
+  # This value can be modified freely via instance methods.
   #```
-  # body_temperature = Crometheus::Collector(Crometheus::Gauge).new(
+  # body_temperature = Crometheus::Gauge.new(
   #   :body_temperature, "Human body temperature")
   # body_temperature.set 98.6
   #
@@ -68,17 +64,15 @@ module Crometheus
       dec
     end
 
-    # Returns `:gauge`. See `Metric.type`.
+    # Returns `Type::Gauge`. See `Metric.type`.
     def self.type
-      :gauge
+      Type::Gauge
     end
 
-    # Yields a single Sample bearing the gauge value.
-    #
-    # If you aren't writing your own metric types, don't worry about
-    # this. If you are, see `Metric#samples`.
+    # Yields a single Sample bearing the gauge value. See
+    # `Metric#samples`.
     def samples(&block : Sample -> Nil) : Nil
-      yield make_sample(@value)
+      yield Sample.new(@value)
     end
   end
 end

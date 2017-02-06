@@ -6,11 +6,10 @@ module Crometheus
   # by the given value, and `count` is incremented by one.
   #
   # Quantiles are not currently supported.
-  #
-  # `Summary` should generally not be instantiated directly. Instantiate
-  # `Collector(Summary)` instead.
   #```
-  # cargo_weight = Crometheus::Collector(Crometheus::Summary).new(
+  # require "crometheus/summary"
+  #
+  # cargo_weight = Crometheus::Summary.new(
   #   :cargo_weight, "Weight of all boxes")
   # cargo_weight.observe 29.0
   # cargo_weight.observe 12.0
@@ -48,18 +47,15 @@ module Crometheus
       end
     end
 
-    # Yields two samples, one for `count` and one for `sum`.
-    #
-    # If you aren't writing your own metric types, don't worry about
-    # this. If you are, see `Metric#samples`.
+    # Yields two samples, one for `count` and one for `sum`. See `Metric#samples`.
     def samples(&block : Sample -> Nil) : Nil
-      yield make_sample(@count, suffix: "_count")
-      yield make_sample(@sum, suffix: "_sum")
+      yield Sample.new(@count, suffix: "_count")
+      yield Sample.new(@sum, suffix: "_sum")
     end
 
-    # Returns `:summary`. See `Metric.type`.
+    # Returns `Type::Summary`. See `Metric.type`.
     def self.type
-      :summary
+      Type::Summary
     end
 
     # In addition to the standard `Metric.valid_label?` behavior,

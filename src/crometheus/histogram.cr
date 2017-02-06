@@ -7,14 +7,11 @@ module Crometheus
   # its upper bound. Whenever `#observe` is called, the value of each
   # bucket with a bound equal to or greater than the observed value is
   # incremented. A running sum of all observed values is also tracked.
-  #
-  # `Histogram` should generally not be instantiated directly.
-  # Instantiate `Collector(Histogram)` instead.
   #```
   # buckets = Crometheus::Histogram.linear_buckets(60, 30, 10)
   # # => [60.0, 90.0, 120.0, ... , 300.0, 330.0, Infinity]
   #
-  # hold_times = Crometheus::Collector(Crometheus::Histogram).new(
+  # hold_times = Crometheus::Histogram.new(
   #   :hold_times, "Time spent on hold", buckets: buckets)
   # hold_times.observe 35.4
   # hold_times.observe 214.1
@@ -40,10 +37,12 @@ module Crometheus
     # be used to generate an appropriate array. A bucket for Infinity
     # will be added if it is not already part of the array. If left
     # unspecified, buckets will default to
-    # `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]`.
-    def initialize(labels = {} of Symbol => String,
+    # `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, +Inf]`.
+    def initialize(name : Symbol,
+                   docstring : String,
+                   register_with : Crometheus::Registry? = Crometheus.default_registry,
                    buckets : Array(Float | Int) = @@default_buckets)
-      super(labels)
+      super(name, docstring, register_with)
       buckets.each do |le|
         @buckets[le.to_f64] = 0.0
       end
@@ -86,36 +85,30 @@ module Crometheus
     end
 
     # Yields one `Sample` for each bucket, in addition to one for
-    # `count` (equal to the infinity bucket) and one for `sum`.
-    #
-    # If you aren't writing your own metric types, don't worry about
-    # this. If you are, see `Metric#samples`.
+    # `count` (equal to the infinity bucket) and one for `sum`. See
+    # `Metric#samples`.
     def samples(&block : Sample -> Nil)
-      yield make_sample(@buckets[Float64::INFINITY], suffix: "_count")
-      yield make_sample(@sum, suffix: "_sum")
+      yield Sample.new(@buckets[Float64::INFINITY], suffix: "_count")
+      yield Sample.new(@sum, suffix: "_sum")
       @buckets.each do |le, value|
-        yield make_sample(value, labels: {:le => Crometheus.stringify(le).to_s}, suffix: "_bucket")
+        yield Sample.new(value, labels: {:le => Crometheus.stringify(le).to_s}, suffix: "_bucket")
       end
     end
 
-    # Returns `:histogram`.
-    #
-    # If you aren't writing your own metric types, don't worry about
-    # this. If you are, see `Metric#samples`.
+    # Returns `Type::Histogram`. See `Metric.type`.
     def self.type
-      :histogram
+      Type::Histogram
     end
 
     # Returns an array of linearly-increasing bucket upper bounds
     # suitable for passing into the constructor of `Histogram`.
     # `bucket_count` includes the Infinity bucket.
     # ```
-    # require "crometheus/collector"
     # require "crometheus/histogram"
     # include Crometheus
     #
-    # hist = Collector(Histogram).new(:evens, "even teens",
-    #   buckets: Histogram.linear_buckets(12, 2, 5))
+    # hist = Histogram.new(:evens, "even teens",
+    #   buckets: Histogram.linear_buckets(12, 2, 4))
     #
     # hist.buckets # => {12.0 => 0.0, 14.0 => 0.0, 16.0 => 0.0,
     #              #     18.0 => 0.0, Infinity => 0.0}
@@ -134,12 +127,11 @@ module Crometheus
     # suitable for passing into the constructor of `Histogram`.
     # `bucket_count` includes the Infinity bucket.
     # ```
-    # require "crometheus/collector"
     # require "crometheus/histogram"
     # include Crometheus
     #
-    # hist = Collector(Histogram).new(:powers, "powers of two",
-    #   buckets: Histogram.geometric_buckets(1, 2, 5))
+    # hist = Histogram.new(:powers, "powers of two",
+    #   buckets: Histogram.geometric_buckets(1, 2, 4))
     #
     # hist.buckets # => {1.0 => 0.0, 2.0 => 0.0, 4.0 => 0.0,
     #              #     8.0 => 0.0, Infinity => 0.0}
