@@ -18,7 +18,8 @@ dependencies:
 ## Usage
 
 ```crystal
-require "crometheus"
+require "crometheus/summary"
+require "crometheus/gauge"
 
 # Create an unlabeled summary.
 summary = Crometheus::Summary.new(
