@@ -4,6 +4,8 @@
 For the most part, Crometheus assumes a basic familiarity with Prometheus.
 To that end, readers may wish to skim the official documentation on Prometheus' [data model](https://prometheus.io/docs/concepts/data_model/), [metric types](https://prometheus.io/docs/concepts/metric_types/), and [text exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-format-details).
 
+Crometheus is in early development and comes with no guarantees. This project is not affiliated with or endorsed by Prometheus.
+
 ## Installation
 
 Add this to your application's `shard.yml`:
