@@ -57,7 +57,8 @@ module Crometheus
     #
     # `#start_server` is included for convenience, but does not do any
     # exception handling. Serious applications should use `#run_server`
-    # instead, which runs in the current fiber.
+    # (which runs in the current fiber) instead, or call `#get_handler`
+    # if they need more control over HTTP features..
     def start_server
       return false if @server_on
 
@@ -77,7 +78,7 @@ module Crometheus
     end
 
     # Creates an `HTTP::Server` object bound to `host` and `port`
-    # and begins serving metrics as per `get_handler`.
+    # and begins serving metrics as per `#get_handler`.
     # Returns `true` once the server is stopped.
     # Returns `false` immediately if this registry is already serving.
     def run_server
@@ -117,9 +118,9 @@ module Crometheus
       end
     end
 
-    # Returns an `HTTP::Handler` that generates metrics. If `path` is
-    # configured, and does not match the context path, passes through to the
-    # next handler instead.
+    # Returns an `HTTP::Handler` that generates metrics.
+    # If `path` is configured, and does not match the context path,
+    # passes through to the next handler instead.
     def get_handler
       @handler ||= Handler.new(self)
     end
