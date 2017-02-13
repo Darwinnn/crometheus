@@ -4,6 +4,10 @@ stages:
 - test
 - deploy
 
+cache:
+  paths:
+  - doc/
+
 spec:
   stage: test
   script:
