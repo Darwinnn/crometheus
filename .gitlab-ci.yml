@@ -16,7 +16,7 @@ spec:
 pages:
   stage: deploy
   script:
-  - true
+  - "true"
   artifacts:
     paths: [public]
   only: [master]
