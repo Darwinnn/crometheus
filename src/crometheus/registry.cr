@@ -24,11 +24,14 @@ module Crometheus
     property host = "localhost"
     # The port that the server should bind to. Defaults to `5000`.
     property port = 5000
+    # If non-nil, will only handle requests with a matching path.
+    property path : String | Regex | Nil = nil
     # If non-empty, will be prefixed to all metric names, separated by
     # an underscore.
     getter namespace = ""
     @server : HTTP::Server? = nil
     @server_on = false
+    @handler : Handler? = nil
 
     # Adds a `Metric` to this registry. The metric's samples will then
     # show up whenever the server is scraped. Metrics call `#register`
@@ -74,16 +77,12 @@ module Crometheus
     end
 
     # Creates an `HTTP::Server` object bound to `host` and `port`
-    # and begins serving metrics. Returns `true` once the server is
-    # stopped. Returns `false` immediately if this registry is already
-    # serving.
+    # and begins serving metrics as per `get_handler`.
+    # Returns `true` once the server is stopped.
+    # Returns `false` immediately if this registry is already serving.
     def run_server
       return false if @server_on
-      @server = server = HTTP::Server.new(@host, @port) do |context|
-        context.response.content_type = "text/plain; version=0.0.4"
-        generate_text_format(context.response)
-      end
-
+      @server = server = HTTP::Server.new(@host, @port, [get_handler])
       @server_on = true
       begin
         server.listen
@@ -102,7 +101,7 @@ module Crometheus
       @namespace = str
     end
 
-    private def generate_text_format(io)
+    protected def generate_text_format(io)
       prefix = namespace.empty? ? "" : namespace + "_"
       @metrics.each do |mm|
         io << "# HELP " << prefix << mm.name << ' ' << mm.docstring << '\n'
@@ -115,6 +114,30 @@ module Crometheus
           end
           io << ' ' << Crometheus.stringify(sample.value) << '\n'
         end
+      end
+    end
+
+    # Returns an `HTTP::Handler` that generates metrics. If `path` is
+    # configured, and does not match the context path, passes through to the
+    # next handler instead.
+    def get_handler
+      @handler ||= Handler.new(self)
+    end
+
+    private class Handler
+      include HTTP::Handler
+
+      def initialize(@registry : Registry)
+      end
+
+      def call(context)
+        req_path = context.request.path
+        return call_next(context) if \
+          (@registry.path.is_a? String && req_path != @registry.path) ||
+          (@registry.path.is_a? Regex && req_path !~ @registry.path)
+
+        context.response.content_type = "text/plain; version=0.0.4"
+        @registry.generate_text_format(context.response)
       end
     end
   end

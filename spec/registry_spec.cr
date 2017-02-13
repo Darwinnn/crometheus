@@ -65,7 +65,7 @@ describe Crometheus::Registry do
     summary = Crometheus::Summary.new(:summary1, "docstring5", registry)
     summary.observe(100.0)
 
-    registry.start_server
+    registry.start_server.should eq true
     sleep 0.5
 
     response = HTTP::Client.get "http://localhost:5000/metrics"
@@ -107,30 +107,47 @@ spec_summary1_sum 100.0
     end
 
     it "stops serving" do
-      registry.stop_server
+      registry.stop_server.should eq true
       expect_raises(Errno) do
         HTTP::Client.get "http://localhost:9027/metrics"
       end
     end
 
-    it "allows host/port configuration" do
+    it "allows host/port/path configuration" do
       registry.host = "127.0.0.55"
       registry.port = 99009
-      registry.start_server
+      registry.path = "/xyz"
+      registry.start_server.should eq true
       sleep 0.5
-      response = HTTP::Client.get "http://127.0.0.55:99009/metrics"
+
+      response = HTTP::Client.get "http://127.0.0.55:99009/"
+      response.status_code.should eq 404
+      response = HTTP::Client.get "http://127.0.0.55:99009/xyz"
       response.status_code.should eq 200
-      response.body.each_line.zip(expected_response.each_line).each do |a,b|
-        a.should eq b
-      end
+      response.body.lines.should eq expected_response.lines
+
       registry.stop_server
+      registry.path = /a.?b/
+      registry.start_server.should eq true
+      sleep 0.5
+
+      response = HTTP::Client.get "http://127.0.0.55:99009/cba"
+      response.status_code.should eq 404
+      response = HTTP::Client.get "http://127.0.0.55:99009/123abcdef"
+      response.status_code.should eq 200
+      response.body.lines.should eq expected_response.lines
+      response = HTTP::Client.get "http://127.0.0.55:99009/x/a/b/c"
+      response.status_code.should eq 200
+      response.body.lines.should eq expected_response.lines
+
+      registry.stop_server.should eq true
     end
 
     it "prefixes metrics with namespace" do
       registry2 = Crometheus::Registry.new
       Crometheus::Gauge.new(:my_gauge, "docstring", registry2).set 15.0
       registry2.namespace = ""
-      registry2.start_server
+      registry2.start_server.should eq true
       sleep 0.2
       HTTP::Client.get("http://localhost:5000/metrics").body.should eq %<\
 # HELP my_gauge docstring
@@ -147,7 +164,13 @@ ns_my_gauge 15.0
     end
   end
 
-  describe "namespace=" do
+  describe "#get_handler" do
+    it "returns an HTTP handler" do
+      Crometheus::Registry.new.get_handler.should be_a HTTP::Handler
+    end
+  end
+
+  describe "#namespace=" do
     it "rejects improper names" do
       registry = Crometheus::Registry.new
       expect_raises(ArgumentError) {registry.namespace = "*" }
