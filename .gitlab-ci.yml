@@ -1,8 +1,18 @@
 image: crystallang/crystal
 
-pages:
+stages:
+- test
+- deploy
+
+spec:
+  stage: test
   script:
+  - crystal spec
   - crystal doc
+
+pages:
+  stage: deploy
+  script:
   - mv doc public
   artifacts:
     paths: [public]
