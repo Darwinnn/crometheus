@@ -1,0 +1,8 @@
+## current HEAD
+* New: `Registry#path` specifies the HTTP request path(s) on which to serve metrics.
+* New: `Registry#handler` returns an `HTTP::Handler` object.
+
+## **0.1.1** - 2017-02-06
+* Initial release
+* Includes Gauges, Counters, Summaries, and Histograms
+* Includes Registry class with basic server functionality

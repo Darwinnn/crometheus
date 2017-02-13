@@ -1,3 +1,6 @@
+# A simplistic usage example for basic Crometheus features.
+# Creates some metrics, starts a server with default settings, and measures some
+# silly statistics based on user input.
 require "crometheus/counter"
 require "crometheus/gauge"
 require "crometheus/histogram"
@@ -20,7 +23,7 @@ word_length = Histogram[:type].new(:word_length, "How many words have been typed
   buckets: bucket_array)
 
 # Since we know in advance what labelsets we will be using, we can force
-# them all to be created now.
+# them all to be initialized now.
 ["", "allcaps", "punctuated", "palindrome"].each do |label|
   word_length[type: label]
 end
