@@ -4,20 +4,18 @@ stages:
 - test
 - deploy
 
-cache:
-  paths:
-  - doc/
-
 spec:
   stage: test
   script:
   - crystal spec
   - crystal doc
+  - mv doc public
+  artifacts:
+    paths: [public]
 
 pages:
   stage: deploy
-  script:
-  - mv doc public
+  script: []
   artifacts:
     paths: [public]
   only: [master]
