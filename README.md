@@ -70,6 +70,15 @@ If you want to define a custom metric type, see the documentation for the [Metri
 
 Alternately, you can just dive into the [API Documentation](https://ezrast.gitlab.io/crometheus) right from the top.
 
+## Contributing
+
+0. Don't be scared; you can [use your GitHub account on GitLab](https://gitlab.com/users/auth/github)
+1. Fork it ( https://gitlab.com/ezrast/crometheus/forks/new )
+2. Create your feature branch (git checkout -b my-new-feature)
+3. Commit your changes (git commit -am 'Add some feature')
+4. Push to the branch (git push origin my-new-feature)
+5. Create a new Merge Request
+
 ## Author
 
 - [Ezra Stevens](https://gitlab.com/ezrast) - creator, maintainer
