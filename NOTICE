@@ -1,0 +1,7 @@
+Crometheus - a Prometheus instrumentation library for Crystal applications
+Copyright 2017 Ezra Stevens
+
+The specification suite for this library includes files taken from the official
+Prometheus Python client library, which is available under the "Apache-2.0"
+license.
+Files under spec/proc are Copyright 2015 by The Prometheus Authors.
