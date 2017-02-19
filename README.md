@@ -72,7 +72,7 @@ Alternately, you can just dive into the [API Documentation](https://ezrast.gitla
 
 ## Contributing
 
-0. Don't be scared; you can [use your GitHub account on GitLab](https://gitlab.com/users/auth/github)
+0. Don't be scared; you can [use your GitHub account on GitLab](https://gitlab.com/users/sign_in) (just click on Octocat)
 1. Fork it ( https://gitlab.com/ezrast/crometheus/forks/new )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
