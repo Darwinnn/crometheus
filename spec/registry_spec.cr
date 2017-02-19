@@ -6,9 +6,21 @@ require "../src/crometheus/histogram"
 require "../src/crometheus/summary"
 
 describe Crometheus::Registry do
+  describe "#initialize" do
+    it "adds standard exports by default" do
+      Crometheus::Registry.new.metrics.map{ |mm| {mm.class, mm.name} }.should eq([
+        {Crometheus::StandardExports::ProcFSExports, :process},
+      ])
+    end
+
+    it "can be created without standard exports" do
+      Crometheus::Registry.new(false).metrics.should eq [] of Crometheus::Metric
+    end
+  end
+
   describe "#register" do
     it "ingests metrics passed to it" do
-      registry = Crometheus::Registry.new
+      registry = Crometheus::Registry.new(false)
       gauge1 = Crometheus::Gauge.new(:a, "", nil)
       gauge2 = Crometheus::Gauge.new(:b, "", nil)
       registry.register gauge1
@@ -17,7 +29,7 @@ describe Crometheus::Registry do
     end
 
     it "enforces unique metric names" do
-      registry = Crometheus::Registry.new
+      registry = Crometheus::Registry.new(false)
       gauge1 = Crometheus::Gauge.new(:a, "", nil)
       gauge2 = Crometheus::Gauge.new(:a, "", nil)
       registry.register gauge1
@@ -27,7 +39,7 @@ describe Crometheus::Registry do
 
   describe "#unregister" do
     it "deletes metrics from the registry" do
-      registry = Crometheus::Registry.new
+      registry = Crometheus::Registry.new(false)
       gauge1 = Crometheus::Gauge.new(:a, "", nil)
       gauge2 = Crometheus::Gauge.new(:b, "", nil)
       registry.register gauge1
@@ -38,7 +50,7 @@ describe Crometheus::Registry do
   end
 
   describe "#start_server and #stop_server" do
-    registry = Crometheus::Registry.new
+    registry = Crometheus::Registry.new(false)
     registry.namespace = "spec"
 
     gauge1 = Crometheus::Gauge[:test].new(:gauge1, "docstring1", registry)
@@ -144,7 +156,7 @@ spec_summary1_sum 100.0
     end
 
     it "prefixes metrics with namespace" do
-      registry2 = Crometheus::Registry.new
+      registry2 = Crometheus::Registry.new(false)
       Crometheus::Gauge.new(:my_gauge, "docstring", registry2).set 15.0
       registry2.namespace = ""
       registry2.start_server.should eq true
@@ -166,13 +178,13 @@ ns_my_gauge 15.0
 
   describe "#get_handler" do
     it "returns an HTTP handler" do
-      Crometheus::Registry.new.get_handler.should be_a HTTP::Handler
+      Crometheus::Registry.new(false).get_handler.should be_a HTTP::Handler
     end
   end
 
   describe "#namespace=" do
     it "rejects improper names" do
-      registry = Crometheus::Registry.new
+      registry = Crometheus::Registry.new(false)
       expect_raises(ArgumentError) {registry.namespace = "*" }
       expect_raises(ArgumentError) {registry.namespace = "a$b" }
     end

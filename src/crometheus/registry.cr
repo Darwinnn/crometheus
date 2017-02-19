@@ -1,6 +1,7 @@
 require "http/server"
 require "./metric"
 require "./stringify"
+require "./standard_exports"
 
 module Crometheus
   # The `Registry` class is responsible for aggregating samples from all
@@ -32,6 +33,17 @@ module Crometheus
     @server : HTTP::Server? = nil
     @server_on = false
     @handler : Handler? = nil
+
+    # Creates a new `Registry`.
+    # Will export standard process statistics by default by calling
+    # `Crometheus.make_standard_exports`.
+    # If you for some reason want to avoid this, set
+    # `include_standard_exports` to `false`.
+    def initialize(include_standard_exports = true)
+      if include_standard_exports
+        Crometheus.make_standard_exports(:process, "Standard process statistics", self)
+      end
+    end
 
     # Adds a `Metric` to this registry. The metric's samples will then
     # show up whenever the server is scraped. Metrics call `#register`
@@ -143,10 +155,16 @@ module Crometheus
     end
   end
 
-  @@default_registry = Registry.new
-  # Returns the default `Registry`. All new `Metric` instances get
-  # registered to this by default.
-  def self.default_registry
-    @@default_registry
+  @@default_registry : Registry? = nil
+  # Returns the default `Registry`.
+  # All new `Metric` instances get registered to this by default.
+  #
+  # The first time this is called, setting `include_standard_exports` to
+  # `false` will pass that argument to `Registry#new`.
+  # This is done so that the user may exclude process statistics from
+  # the default registry by calling `default_registry(false)` prior to
+  # creating any metrics.
+  def self.default_registry(include_standard_exports = true)
+    @@default_registry ||= Registry.new(include_standard_exports)
   end
 end

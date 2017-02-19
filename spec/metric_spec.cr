@@ -32,13 +32,13 @@ describe Crometheus::Metric do
   describe ".new" do
     it "automatically registers with the default registry" do
       simple = Simple.new(:a, "")
-      Crometheus.default_registry.metrics.first.should eq simple
+      Crometheus.default_registry.metrics.should contain simple
     end
 
     it "registers with a registry passed to the constructor" do
       registry = Crometheus::Registry.new
       simple = Simple.new(:b, "", registry)
-      registry.metrics.should eq [simple]
+      registry.metrics.should contain simple
       Crometheus.default_registry.metrics.should_not contain simple
     end
 

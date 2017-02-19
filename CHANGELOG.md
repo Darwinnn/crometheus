@@ -1,6 +1,9 @@
 ## current HEAD
-* New: `Registry#path` specifies the HTTP request path(s) on which to serve metrics.
+* New: `Registry#path` specifies the HTTP request path(s) on which to serve
+  metrics.
 * New: `Registry#handler` returns an `HTTP::Handler` object.
+* New: `Registry` by default creates a `StandardExports` (or derived) metric for
+  exporting process statistics.
 
 ## **0.1.1** - 2017-02-06
 * Initial release
