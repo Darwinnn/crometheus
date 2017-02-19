@@ -7,6 +7,8 @@ authors:
 targets:
   wordcounter:
     main: src/wordcounter.cr
+  custom-server:
+    main: src/custom-server.cr
 
 dependencies:
   crometheus:
