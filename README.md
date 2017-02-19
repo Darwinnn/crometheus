@@ -6,6 +6,8 @@ To that end, readers may wish to skim the official documentation on Prometheus' 
 
 Crometheus is in early development and comes with no guarantees. This project is not affiliated with or endorsed by Prometheus.
 
+For latest updates, see [CHANGELOG.md](CHANGELOG.md).
+
 ## Installation
 
 Add this to your application's `shard.yml`:
