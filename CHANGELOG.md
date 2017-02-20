@@ -1,4 +1,6 @@
 ## current HEAD
+* Changed: Metric names now implicitly add an underscore before the suffix, if
+  present.
 * New: `Registry#path` specifies the HTTP request path(s) on which to serve
   metrics.
 * New: `Registry#handler` returns an `HTTP::Handler` object.
