@@ -121,7 +121,10 @@ module Crometheus
         io << "# TYPE " << prefix << mm.name << ' ' <<
           (mm.class.type.as?(Metric::Type) || "untyped") << '\n'
         mm.samples do |sample|
-          io << prefix << mm.name << sample.suffix
+          io << prefix << mm.name
+          unless sample.suffix.empty?
+            io << '_' << sample.suffix
+          end
           unless sample.labels.empty?
             io << '{' << sample.labels.map {|kk,vv| "#{kk}=\"#{vv}\""}.join(", ") << '}'
           end

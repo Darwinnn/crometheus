@@ -26,10 +26,10 @@ describe Crometheus::StandardExports::ProcFSExports do
       nil, 26231, "./spec/proc")
     samples = get_samples(exports)
 
-    samples.should contain Crometheus::Sample.new(56274944.0, suffix: "_virtual_memory_bytes")
-    samples.should contain Crometheus::Sample.new(8114176.0, suffix: "_resident_memory_bytes")
-    samples.should contain Crometheus::Sample.new(1418184099.75, suffix: "_start_time_seconds")
-    samples.should contain Crometheus::Sample.new(2048.0, suffix: "_max_fds")
-    samples.should contain Crometheus::Sample.new(5.0, suffix: "_open_fds")
+    samples.should contain Crometheus::Sample.new(56274944.0, suffix: "virtual_memory_bytes")
+    samples.should contain Crometheus::Sample.new(8114176.0, suffix: "resident_memory_bytes")
+    samples.should contain Crometheus::Sample.new(1418184099.75, suffix: "start_time_seconds")
+    samples.should contain Crometheus::Sample.new(2048.0, suffix: "max_fds")
+    samples.should contain Crometheus::Sample.new(5.0, suffix: "open_fds")
   end
 end

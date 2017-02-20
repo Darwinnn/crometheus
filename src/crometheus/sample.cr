@@ -11,7 +11,7 @@ module Crometheus
   #
   # A `Metric` named `:fruit` that yields a `Sample` like this:
   # ```
-  # Sample.new(12.0, labels: {:species => "banana"}, suffix: "_count")
+  # Sample.new(12.0, labels: {:species => "banana"}, suffix: "count")
   # ```
   # will produce an exported metric line like this:
   # ```text

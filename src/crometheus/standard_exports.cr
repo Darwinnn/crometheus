@@ -21,12 +21,12 @@ module Crometheus
     def samples
       tms = Process.times
       gc_stats = GC.stats
-      yield Sample.new(gc_stats.heap_size.to_f, suffix: "_gc_heap_bytes")
-      yield Sample.new(gc_stats.free_bytes.to_f, suffix: "_gc_free_bytes")
-      yield Sample.new(gc_stats.total_bytes.to_f, suffix: "_gc_total_bytes")
-      yield Sample.new(gc_stats.unmapped_bytes.to_f, suffix: "_gc_unmapped_bytes")
-      yield Sample.new(gc_stats.bytes_since_gc.to_f, suffix: "_bytes_since_gc")
-      yield Sample.new(tms.stime + tms.utime, suffix: "_cpu_seconds_total")
+      yield Sample.new(gc_stats.heap_size.to_f, suffix: "gc_heap_bytes")
+      yield Sample.new(gc_stats.free_bytes.to_f, suffix: "gc_free_bytes")
+      yield Sample.new(gc_stats.total_bytes.to_f, suffix: "gc_total_bytes")
+      yield Sample.new(gc_stats.unmapped_bytes.to_f, suffix: "gc_unmapped_bytes")
+      yield Sample.new(gc_stats.bytes_since_gc.to_f, suffix: "bytes_since_gc")
+      yield Sample.new(tms.stime + tms.utime, suffix: "cpu_seconds_total")
     end
 
     # A subclass of `StandardExports` that also reports process
@@ -74,11 +74,11 @@ module Crometheus
 
         super { |sample| yield sample }
 
-        yield Sample.new(open_fds.to_f, suffix: "_open_fds")
-        yield Sample.new(max_fds.to_f, suffix: "_max_fds")
-        yield Sample.new(virtual_memory.to_f, suffix: "_virtual_memory_bytes")
-        yield Sample.new(resident_memory.to_f, suffix: "_resident_memory_bytes")
-        yield Sample.new(start_time, suffix: "_start_time_seconds")
+        yield Sample.new(open_fds.to_f, suffix: "open_fds")
+        yield Sample.new(max_fds.to_f, suffix: "max_fds")
+        yield Sample.new(virtual_memory.to_f, suffix: "virtual_memory_bytes")
+        yield Sample.new(resident_memory.to_f, suffix: "resident_memory_bytes")
+        yield Sample.new(start_time, suffix: "start_time_seconds")
       end
 
       protected def self.page_size
