@@ -54,15 +54,15 @@ describe Crometheus::Summary do
       summary.observe(0.1)
       summary.observe(0.3)
       get_samples(summary).should eq [
-        Crometheus::Sample.new(suffix: "_count", value: 2.0),
-        Crometheus::Sample.new(suffix: "_sum", value: 0.4)
+        Crometheus::Sample.new(suffix: "count", value: 2.0),
+        Crometheus::Sample.new(suffix: "sum", value: 0.4)
       ]
 
       summary2 = Crometheus::Summary.new(:x, "", nil)
       summary2.observe(-20)
       get_samples(summary2).should eq [
-        Crometheus::Sample.new(suffix: "_count", value: 1.0),
-        Crometheus::Sample.new(suffix: "_sum", value: -20.0)
+        Crometheus::Sample.new(suffix: "count", value: 1.0),
+        Crometheus::Sample.new(suffix: "sum", value: -20.0)
       ]
     end
   end

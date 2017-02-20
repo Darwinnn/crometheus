@@ -126,13 +126,13 @@ describe Crometheus::Histogram do
       histogram1.observe(0.44)
 
       expected = [
-        Crometheus::Sample.new(4.0, suffix: "_count"),
-        Crometheus::Sample.new(1.1, suffix: "_sum"),
-        Crometheus::Sample.new(0.0, labels: {:le => "0.1"}, suffix: "_bucket"),
-        Crometheus::Sample.new(2.0, labels: {:le => "0.25"}, suffix: "_bucket"),
-        Crometheus::Sample.new(4.0, labels: {:le => "0.5"}, suffix: "_bucket"),
-        Crometheus::Sample.new(4.0, labels: {:le => "1.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(4.0, labels: {:le => "+Inf"}, suffix: "_bucket")
+        Crometheus::Sample.new(4.0, suffix: "count"),
+        Crometheus::Sample.new(1.1, suffix: "sum"),
+        Crometheus::Sample.new(0.0, labels: {:le => "0.1"}, suffix: "bucket"),
+        Crometheus::Sample.new(2.0, labels: {:le => "0.25"}, suffix: "bucket"),
+        Crometheus::Sample.new(4.0, labels: {:le => "0.5"}, suffix: "bucket"),
+        Crometheus::Sample.new(4.0, labels: {:le => "1.0"}, suffix: "bucket"),
+        Crometheus::Sample.new(4.0, labels: {:le => "+Inf"}, suffix: "bucket")
       ]
       get_samples(histogram1).size.should eq expected.size
       get_samples(histogram1).zip(expected).each do |actual, expected|
@@ -145,13 +145,13 @@ describe Crometheus::Histogram do
       histogram2.observe(17.5)
 
       expected = [
-        Crometheus::Sample.new(2.0, suffix: "_count"),
-        Crometheus::Sample.new(24.5, suffix: "_sum"),
-        Crometheus::Sample.new(0.0, labels: {:le => "1.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(0.0, labels: {:le => "2.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(1.0, labels: {:le => "7.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(1.0, labels: {:le => "11.0"}, suffix: "_bucket"),
-        Crometheus::Sample.new(2.0, labels: {:le => "+Inf"}, suffix: "_bucket")
+        Crometheus::Sample.new(2.0, suffix: "count"),
+        Crometheus::Sample.new(24.5, suffix: "sum"),
+        Crometheus::Sample.new(0.0, labels: {:le => "1.0"}, suffix: "bucket"),
+        Crometheus::Sample.new(0.0, labels: {:le => "2.0"}, suffix: "bucket"),
+        Crometheus::Sample.new(1.0, labels: {:le => "7.0"}, suffix: "bucket"),
+        Crometheus::Sample.new(1.0, labels: {:le => "11.0"}, suffix: "bucket"),
+        Crometheus::Sample.new(2.0, labels: {:le => "+Inf"}, suffix: "bucket")
       ]
       get_samples(histogram2).size.should eq expected.size
       get_samples(histogram2).zip(expected).each do |actual, expected|
