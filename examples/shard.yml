@@ -1,5 +1,5 @@
 name: examples
-version: 0.1.1
+version: 0.1.2
 
 authors:
   - Ezra Stevens <ezrastevens@cloudandtree.com>
@@ -14,6 +14,6 @@ dependencies:
   crometheus:
     path: ../
 
-crystal: 0.20.5
+crystal: 0.21.0
 
 license: Apache 2.0

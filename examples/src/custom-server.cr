@@ -4,13 +4,14 @@
 # this, rather than rely on the built-in start_server or run_server
 # methods.
 require "http/server"
+require "http/server/handlers/compress_handler"
 require "crometheus/summary"
 
 metrics_handler = Crometheus.default_registry.get_handler
 Crometheus.default_registry.path = "/metrics"
 summary = Crometheus::Summary.new(:manual_values, "values entered via web ui")
 
-server = HTTP::Server.new("localhost", 3000, [HTTP::DeflateHandler.new,
+server = HTTP::Server.new("localhost", 3000, [HTTP::CompressHandler.new,
                                               HTTP::LogHandler.new,
                                               HTTP::ErrorHandler.new(true),
                                               metrics_handler]
