@@ -8,9 +8,15 @@ require "../src/crometheus/summary"
 describe Crometheus::Registry do
   describe "#initialize" do
     it "adds standard exports by default" do
+      {% if flag?(:linux) %}
       Crometheus::Registry.new.metrics.map{ |mm| {mm.class, mm.name} }.should eq([
         {Crometheus::StandardExports::ProcFSExports, :process},
       ])
+      {% else %}
+      Crometheus::Registry.new.metrics.map{ |mm| {mm.class, mm.name} }.should eq([
+        {Crometheus::StandardExports, :process},
+      ])
+      {% end %}
     end
 
     it "can be created without standard exports" do
