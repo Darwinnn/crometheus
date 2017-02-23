@@ -133,14 +133,14 @@ spec_summary1_sum 100.0
 
     it "allows host/port/path configuration" do
       registry.host = "127.0.0.55"
-      registry.port = 99009
+      registry.port = 19009
       registry.path = "/xyz"
       registry.start_server.should eq true
       sleep 0.5
 
-      response = HTTP::Client.get "http://127.0.0.55:99009/"
+      response = HTTP::Client.get "http://127.0.0.55:19009/"
       response.status_code.should eq 404
-      response = HTTP::Client.get "http://127.0.0.55:99009/xyz"
+      response = HTTP::Client.get "http://127.0.0.55:19009/xyz"
       response.status_code.should eq 200
       response.body.lines.should eq expected_response.lines
 
@@ -149,12 +149,12 @@ spec_summary1_sum 100.0
       registry.start_server.should eq true
       sleep 0.5
 
-      response = HTTP::Client.get "http://127.0.0.55:99009/cba"
+      response = HTTP::Client.get "http://127.0.0.55:19009/cba"
       response.status_code.should eq 404
-      response = HTTP::Client.get "http://127.0.0.55:99009/123abcdef"
+      response = HTTP::Client.get "http://127.0.0.55:19009/123abcdef"
       response.status_code.should eq 200
       response.body.lines.should eq expected_response.lines
-      response = HTTP::Client.get "http://127.0.0.55:99009/x/a/b/c"
+      response = HTTP::Client.get "http://127.0.0.55:19009/x/a/b/c"
       response.status_code.should eq 200
       response.body.lines.should eq expected_response.lines
 
