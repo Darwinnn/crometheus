@@ -13,10 +13,12 @@ require "../src/crometheus/standard_exports"
 
 describe Crometheus do
   describe ".make_standard_exports" do
+    {% if flag?(:linux) %}
     it "returns a ProcFSExports object" do
       Crometheus.make_standard_exports(:x, "", nil).should(
         be_a Crometheus::StandardExports::ProcFSExports)
     end
+    {% end %}
   end
 end
 
