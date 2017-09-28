@@ -67,11 +67,12 @@ describe Crometheus::Metric do
 
   describe ".[]" do
     it "creates a LabeledMetric" do
-      Simple[:foo, :bar].new(:x, "", nil).is_a?(
+      Simple[:foo, :bar].new(:x, "", nil).should be_a(
         Crometheus::Metric::LabeledMetric(
           NamedTuple(foo: String, bar: String),
           Simple,
-        )).should eq true
+        )
+      )
     end
   end
 
@@ -140,5 +141,17 @@ describe Crometheus::Metric do
       less_simple2 = LessSimple[:foo].new(:x, "", value: 13.0)
       less_simple2[foo: "x"].value.should eq 13.0
     end
+  end
+end
+
+Crometheus.alias MyType = Simple[:one, :two]
+describe "Crometheus.alias" do
+  it "creates an alias" do
+    MyType.new(:x, "", nil).should be_a(
+      Crometheus::Metric::LabeledMetric(
+        NamedTuple(one: String, two: String),
+        Simple,
+      )
+    )
   end
 end
