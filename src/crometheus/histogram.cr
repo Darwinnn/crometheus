@@ -80,7 +80,7 @@ module Crometheus
     def measure_runtime(&block)
       t0 = Time.now
       begin
-        yield
+        return yield
       ensure
         t1 = Time.now
         observe((t1 - t0).to_f)

@@ -1,4 +1,5 @@
 require "./crometheus/*"
+require "./crometheus/middleware/*"
 
 # Crometheus is a [Prometheus](https://prometheus.io/) client library
 # for instrumenting programs written in the Crystal programming

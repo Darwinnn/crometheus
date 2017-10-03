@@ -1,4 +1,6 @@
 ## current HEAD
+* New: `Crometheus::Middleware::HttpCollector` allows easy HTTP metric
+  gathering.
 * Changed: Metric names now implicitly add an underscore before the
   suffix, if present.
 * New: `Registry#path` specifies the HTTP request path(s) on which to
