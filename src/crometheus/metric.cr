@@ -107,8 +107,9 @@ module Crometheus
     # to collect, and one `NamedTuple` mapping label names to `String`
     # values.
     # Since this is cumbersome to type out, you generally won't refer to
-    # `LabeledMetric` directly in your code; instead, use `Metric.[]` to
-    # generate an appropriate `LabeledMetric` type.
+    # `LabeledMetric` directly in your code; instead, use `Metric.[]` or
+    # `Crometheus.alias` to generate an appropriate `LabeledMetric`
+    # type.
     #
     # Storing labelsets as `NamedTuple`s allows the compiler to enforce
     # the constraint that every metric in the collection have the same
@@ -169,13 +170,15 @@ module Crometheus
         end
         return nil
       end
-
     end
 
     # Convenience macro for generating a `LabeledMetric` with
     # appropriate type parameters.
     # Takes any number of `Symbol`s as arguments, returning a
     # `LabeledMetric` class object with those arguments as label names.
+    # Note that this macro causes type inference to fail when used with
+    # class or instance variables; see `Crometheus.alias` for that use
+    # case.
     #```
     # require "crometheus/gauge"
     #
@@ -195,5 +198,52 @@ module Crometheus
         {{@type}}
       )
     end
+  end
+
+  # Convenience macro for aliasing a constant identifier to a
+  # `Metric::LabeledMetric` type.
+  # Unfortunately, the `Metric.[]` macro breaks type inference when used to
+  # initialize a class or instance variable.
+  # This can be worked around by using this macro to generate a
+  # friendly alias that allows the compiler to do type inference.
+  # The syntax is exactly the same as the ordinary `alias` keyword,
+  # except that the aliased type must be a `Metric::LabeledMetric` specified
+  # with the notation documented in `Metric.[]`.
+  # See
+  # [Crystal issue #4039](https://github.com/crystal-lang/crystal/issues/4039)
+  # for more information.
+  #```
+  # require "crometheus/counter"
+  #
+  # class TollBooth
+  #   Crometheus.alias CarCounter = Crometheus::Counter[:make, :model]
+  #   def initialize
+  #     @money = Crometheus::Counter.new(:money, "Fees collected")
+  #     # Non-labeled metrics can be instantiated normally
+  #     @counts = CarCounter.new(:cars, "Number of cars driven")
+  #   end
+  #
+  #   def count_car(make, model)
+  #     @money.inc(5)
+  #     @counts[make: make, model: model].inc
+  #   end
+  # end
+  #```
+  macro alias(assignment)
+    {% unless assignment.is_a?(Assign) &&
+              assignment.target.is_a?(Path) &&
+              assignment.value.is_a?(Call) &&
+              assignment.value.receiver.is_a?(Path) &&
+              assignment.value.name.stringify == "[]" %}
+      {% raise "Crometheus aliases must take this form:\n`#{@type}.alias MyType = SomeMetricType[:label1, :label2, ... ]`" %}
+    {% end %}
+    alias {{ assignment.target }} = Crometheus::Metric::LabeledMetric(
+      NamedTuple(
+        {% for label in assignment.value.args %}
+          {{ label.id }}: String,
+        {% end %}
+      ),
+      {{ assignment.value.receiver }}
+    )
   end
 end
