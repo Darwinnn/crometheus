@@ -1,4 +1,4 @@
-## current HEAD
+## **0.2.0** - 2017-10-02
 * New: `Crometheus::Middleware::HttpCollector` allows easy HTTP metric
   gathering.
 * Changed: Metric names now implicitly add an underscore before the
