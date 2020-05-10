@@ -22,7 +22,7 @@ describe Crometheus::Middleware::HttpCollector do
     request(collector, "POST", "/foo/bar/")
     request(collector, "GET", "/foo/quux")
 
-    metric = registry.metrics.find{ |mm|
+    metric = registry.metrics.find { |mm|
       mm.name == :http_requests_total
     }.as(Crometheus::Middleware::HttpCollector::RequestCounter)
     metric[code: "404", method: "GET", path: "/foo/bar/:id"].get.should eq 2
@@ -43,15 +43,18 @@ describe Crometheus::Middleware::HttpCollector do
     request(collector, "DELETE", "/123/456/three")
     request(collector, "GET", "/one")
 
-    metric = registry.metrics.find{ |mm|
+    metric = registry.metrics.find { |mm|
       mm.name == :http_request_duration_seconds
     }.as(Crometheus::Middleware::HttpCollector::DurationHistogram)
     metric[method: "GET", path: "/one"].buckets.values.should eq [
-      1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
+      1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
+    ]
     metric[method: "OPTIONS", path: "/two"].buckets.values.should eq [
-      0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+      0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ]
     metric[method: "DELETE", path: "/:id/:id/three"].buckets.values.should eq [
-      0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ]
     metric.get_labels.size.should eq 3
   end
 
@@ -70,7 +73,7 @@ describe Crometheus::Middleware::HttpCollector do
     request(collector, "PUT", "/", "green") rescue ArgumentError
     request(collector, "PUT", "/", "gray") rescue ArgumentError
 
-    metric = registry.metrics.find{ |mm|
+    metric = registry.metrics.find { |mm|
       mm.name == :http_request_exceptions_total
     }.as(Crometheus::Middleware::HttpCollector::ExceptionCounter)
     metric[method: "POST", path: "/", exception: "IndexError"].get.should eq 2
@@ -83,13 +86,13 @@ describe Crometheus::Middleware::HttpCollector do
     collector = Crometheus::Middleware::HttpCollector.new
     metrics = Crometheus.default_registry.metrics
 
-    metrics.find{ |mm|
+    metrics.find { |mm|
       mm.name == :http_requests_total
     }.should be_a(Crometheus::Middleware::HttpCollector::RequestCounter)
-    metrics.find{ |mm|
+    metrics.find { |mm|
       mm.name == :http_request_duration_seconds
     }.should be_a(Crometheus::Middleware::HttpCollector::DurationHistogram)
-    metrics.find{ |mm|
+    metrics.find { |mm|
       mm.name == :http_request_exceptions_total
     }.should be_a(Crometheus::Middleware::HttpCollector::ExceptionCounter)
   end
@@ -98,11 +101,11 @@ describe Crometheus::Middleware::HttpCollector do
     registry = Crometheus::Registry.new(false)
     collector = Crometheus::Middleware::HttpCollector.new(
       registry,
-      ->(path : String){ "~#{path}~" }
+      ->(path : String) { "~#{path}~" }
     )
     request(collector, "GET", "blah")
 
-    metric = registry.metrics.find{ |mm|
+    metric = registry.metrics.find { |mm|
       mm.name == :http_requests_total
     }.as(Crometheus::Middleware::HttpCollector::RequestCounter)
     metric[code: "404", method: "GET", path: "~blah~"].get.should eq 1
@@ -113,7 +116,7 @@ describe Crometheus::Middleware::HttpCollector do
     collector = Crometheus::Middleware::HttpCollector.new(registry, nil)
     request(collector, "GET", "/blah/12")
 
-    metric = registry.metrics.find{ |mm|
+    metric = registry.metrics.find { |mm|
       mm.name == :http_requests_total
     }.as(Crometheus::Middleware::HttpCollector::RequestCounter)
     metric[code: "404", method: "GET", path: "/blah/12"].get.should eq 1

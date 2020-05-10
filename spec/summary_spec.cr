@@ -32,7 +32,7 @@ describe Crometheus::Summary do
   describe "#measure_runtime" do
     it "yields and increases sum by the runtime of the block" do
       summary = Crometheus::Summary.new(:x, "", nil)
-      summary.measure_runtime {sleep 0.1}
+      summary.measure_runtime { sleep 0.1 }
       summary.count.should eq 1.0
       (0.05..0.15).should contain summary.sum
     end
@@ -40,9 +40,9 @@ describe Crometheus::Summary do
     it "works even when the block raises an exception" do
       summary = Crometheus::Summary.new(:x, "", nil)
       expect_raises (CrometheusTestException) do
-        summary.measure_runtime {sleep 0.3; raise CrometheusTestException.new}
+        summary.measure_runtime { sleep 0.3; raise CrometheusTestException.new }
       end
-      summary.measure_runtime {sleep 0.1}
+      summary.measure_runtime { sleep 0.1 }
       summary.count.should eq 2.0
       (0.35..0.45).should contain summary.sum
     end
@@ -55,14 +55,14 @@ describe Crometheus::Summary do
       summary.observe(0.3)
       get_samples(summary).should eq [
         Crometheus::Sample.new(suffix: "count", value: 2.0),
-        Crometheus::Sample.new(suffix: "sum", value: 0.4)
+        Crometheus::Sample.new(suffix: "sum", value: 0.4),
       ]
 
       summary2 = Crometheus::Summary.new(:x, "", nil)
       summary2.observe(-20)
       get_samples(summary2).should eq [
         Crometheus::Sample.new(suffix: "count", value: 1.0),
-        Crometheus::Sample.new(suffix: "sum", value: -20.0)
+        Crometheus::Sample.new(suffix: "sum", value: -20.0),
       ]
     end
   end

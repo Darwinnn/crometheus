@@ -9,13 +9,13 @@ describe Crometheus::Registry do
   describe "#initialize" do
     it "adds standard exports by default" do
       {% if flag?(:linux) %}
-      Crometheus::Registry.new.metrics.map{ |mm| {mm.class, mm.name} }.should eq([
-        {Crometheus::StandardExports::ProcFSExports, :process},
-      ])
+        Crometheus::Registry.new.metrics.map { |mm| {mm.class, mm.name} }.should eq([
+          {Crometheus::StandardExports::ProcFSExports, :process},
+        ])
       {% else %}
-      Crometheus::Registry.new.metrics.map{ |mm| {mm.class, mm.name} }.should eq([
-        {Crometheus::StandardExports, :process},
-      ])
+        Crometheus::Registry.new.metrics.map { |mm| {mm.class, mm.name} }.should eq([
+          {Crometheus::StandardExports, :process},
+        ])
       {% end %}
     end
 
@@ -39,7 +39,7 @@ describe Crometheus::Registry do
       gauge1 = Crometheus::Gauge.new(:a, "", nil)
       gauge2 = Crometheus::Gauge.new(:a, "", nil)
       registry.register gauge1
-      expect_raises(ArgumentError) {registry.register gauge2}
+      expect_raises(ArgumentError) { registry.register gauge2 }
     end
   end
 
@@ -64,11 +64,11 @@ describe Crometheus::Registry do
 
     counter = Crometheus::Counter[:test,
       :label1, :label2, :label3, :label4, :label5, :label6, :label7,
-      :label8, :label9, :label10
+      :label8, :label9, :label10,
     ].new(:counter1, "docstring3", registry)
     counter[test: "many labels", label1: "one", label2: "two",
       label3: "three", label4: "four", label5: "five", label6: "six",
-      label7: "seven", label8: "eight", label9: "nine", label10: "ten"
+      label7: "seven", label8: "eight", label9: "nine", label10: "ten",
     ].inc(1.2345)
 
     gauge1[test: "infinity"].set(Float64::INFINITY)
@@ -118,7 +118,7 @@ spec_summary1_count 1.0
 spec_summary1_sum 100.0
 >
     it "serves metrics in Prometheus text exposition format v0.0.4" do
-      response.body.each_line.zip(expected_response.each_line).each do |a,b|
+      response.body.each_line.zip(expected_response.each_line).each do |a, b|
         a.should eq b
       end
       response.body.should eq expected_response
@@ -126,7 +126,7 @@ spec_summary1_sum 100.0
 
     it "stops serving" do
       registry.stop_server.should eq true
-      expect_raises(Errno) do
+      expect_raises(IO::Error) do
         HTTP::Client.get "http://localhost:5000/metrics"
       end
     end
@@ -191,8 +191,8 @@ ns_my_gauge 15.0
   describe "#namespace=" do
     it "rejects improper names" do
       registry = Crometheus::Registry.new(false)
-      expect_raises(ArgumentError) {registry.namespace = "*" }
-      expect_raises(ArgumentError) {registry.namespace = "a$b" }
+      expect_raises(ArgumentError) { registry.namespace = "*" }
+      expect_raises(ArgumentError) { registry.namespace = "a$b" }
     end
   end
 end

@@ -2,34 +2,34 @@ require "./sample"
 require "./registry"
 
 module Crometheus
-# `Metric` is the base class for individual metrics types.
-#
-# If you want to create your own custom metric types, you'll need to
-# subclass `Metric`.
-# `#samples` is the only abstract method you'll need to override; then
-# you will also need to implement your custom instrumentation.
-# You'll probably also want to define `.type` on your new class; it
-# should return a member of enum `Type`.
-# The following is a perfectly serviceable, if useless, metric type:
-#```
-# require "crometheus/metric"
-#
-# class Randometric < Crometheus::Metric
-#   def self.type
-#     Type::Gauge
-#   end
-#
-#   def samples(&block : Crometheus::Sample -> Nil)
-#     yield Crometheus::Sample.new my_value_method
-#   end
-#
-#   def my_value_method
-#     rand(10).to_f64
-#   end
-# end
-#```
-# See the source to the `Counter`, `Gauge`, `Histogram`, and `Summary`
-# classes for more detailed examples of how to subclass `Metric`.
+  # `Metric` is the base class for individual metrics types.
+  #
+  # If you want to create your own custom metric types, you'll need to
+  # subclass `Metric`.
+  # `#samples` is the only abstract method you'll need to override; then
+  # you will also need to implement your custom instrumentation.
+  # You'll probably also want to define `.type` on your new class; it
+  # should return a member of enum `Type`.
+  # The following is a perfectly serviceable, if useless, metric type:
+  # ```
+  # require "crometheus/metric"
+  #
+  # class Randometric < Crometheus::Metric
+  #   def self.type
+  #     Type::Gauge
+  #   end
+  #
+  #   def samples(&block : Crometheus::Sample -> Nil)
+  #     yield Crometheus::Sample.new my_value_method
+  #   end
+  #
+  #   def my_value_method
+  #     rand(10).to_f64
+  #   end
+  # end
+  # ```
+  # See the source to the `Counter`, `Gauge`, `Histogram`, and `Summary`
+  # classes for more detailed examples of how to subclass `Metric`.
   abstract class Metric
     # The name of the metric. This will be converted to a `String` and
     # exported to Prometheus.
@@ -91,11 +91,11 @@ module Crometheus
 
       def to_s(io : IO)
         io << case self
-        when .gauge?; "gauge"
-        when .counter?; "counter"
+        when .gauge?    ; "gauge"
+        when .counter?  ; "counter"
         when .histogram?; "histogram"
-        when .summary?; "summary"
-        else; "untyped"
+        when .summary?  ; "summary"
+        else              "untyped"
         end
       end
     end
@@ -125,11 +125,11 @@ module Crometheus
                      **metric_params)
         super(name, docstring, register_with)
 
-        @metrics = Hash(LabelType, MetricType).new do |hh,kk|
+        @metrics = Hash(LabelType, MetricType).new do |hh, kk|
           hh[kk] = MetricType.new(**metric_params,
-                                  name: name,
-                                  docstring: docstring,
-                                  register_with: nil)
+            name: name,
+            docstring: docstring,
+            register_with: nil)
         end
       end
 
@@ -164,9 +164,9 @@ module Crometheus
       # Iteratively calls `samples` on each metric in the collection,
       # yielding each received `Sample`.
       # See `Metric#samples`.
-      def samples(&block : Sample -> Nil)
+      def samples(&block : Sample -> Nil) : Nil
         @metrics.each do |labels, metric|
-          metric.samples {|ss| ss.labels.merge!(labels.to_h); yield ss}
+          metric.samples { |ss| ss.labels.merge!(labels.to_h); yield ss }
         end
         return nil
       end
@@ -179,7 +179,7 @@ module Crometheus
     # Note that this macro causes type inference to fail when used with
     # class or instance variables; see `Crometheus.alias` for that use
     # case.
-    #```
+    # ```
     # require "crometheus/gauge"
     #
     # ages = Crometheus::Gauge[:first_name, last_name].new(:age, "Age of person")
@@ -187,7 +187,7 @@ module Crometheus
     # ages[first_name: "Sally", last_name: "Generic"].set 49
     # # ages[first_name: "Jay", middle_initial: "R", last_name: "Hacker"].set 46
     # # => compiler error; label names don't match.
-    #```
+    # ```
     macro [](*labels)
       Crometheus::Metric::LabeledMetric(
         NamedTuple(
@@ -212,11 +212,12 @@ module Crometheus
   # See
   # [Crystal issue #4039](https://github.com/crystal-lang/crystal/issues/4039)
   # for more information.
-  #```
+  # ```
   # require "crometheus/counter"
   #
   # class TollBooth
   #   Crometheus.alias CarCounter = Crometheus::Counter[:make, :model]
+  #
   #   def initialize
   #     @money = Crometheus::Counter.new(:money, "Fees collected")
   #     # Non-labeled metrics can be instantiated normally
@@ -228,13 +229,13 @@ module Crometheus
   #     @counts[make: make, model: model].inc
   #   end
   # end
-  #```
+  # ```
   macro alias(assignment)
     {% unless assignment.is_a?(Assign) &&
-              assignment.target.is_a?(Path) &&
-              assignment.value.is_a?(Call) &&
-              assignment.value.receiver.is_a?(Path) &&
-              assignment.value.name.stringify == "[]" %}
+                assignment.target.is_a?(Path) &&
+                assignment.value.is_a?(Call) &&
+                assignment.value.receiver.is_a?(Path) &&
+                assignment.value.name.stringify == "[]" %}
       {% raise "Crometheus aliases must take this form:\n`#{@type}.alias MyType = SomeMetricType[:label1, :label2, ... ]`" %}
     {% end %}
     alias {{ assignment.target }} = Crometheus::Metric::LabeledMetric(

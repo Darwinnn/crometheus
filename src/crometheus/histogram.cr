@@ -7,7 +7,7 @@ module Crometheus
   # its upper bound. Whenever `#observe` is called, the value of each
   # bucket with a bound equal to or greater than the observed value is
   # incremented. A running sum of all observed values is also tracked.
-  #```
+  # ```
   # require "crometheus/histogram"
   #
   # buckets = Crometheus::Histogram.linear_buckets(60, 30, 10)
@@ -22,7 +22,7 @@ module Crometheus
   # hold_times.observe 384.4
   #
   # under_2_min = hold_times.buckets[120.0] / hold_times.count # => 0.4
-  #```
+  # ```
   class Histogram < Metric
     @@default_buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1,
                          2.5, 5, 10]
@@ -78,11 +78,11 @@ module Crometheus
     # Yields to the block, then passes the block's runtime to
     # `#observe`.
     def measure_runtime(&block)
-      t0 = Time.now
+      t0 = Time.utc
       begin
         return yield
       ensure
-        t1 = Time.now
+        t1 = Time.utc
         observe((t1 - t0).to_f)
       end
     end
@@ -90,7 +90,7 @@ module Crometheus
     # Yields one `Sample` for each bucket, in addition to one for
     # `count` (equal to the infinity bucket) and one for `sum`. See
     # `Metric#samples`.
-    def samples(&block : Sample -> Nil)
+    def samples(&block : Sample -> Nil) : Nil
       yield Sample.new(@buckets[Float64::INFINITY], suffix: "count")
       yield Sample.new(@sum, suffix: "sum")
       @buckets.each do |le, value|
@@ -114,7 +114,7 @@ module Crometheus
     #   buckets: Histogram.linear_buckets(12, 2, 4))
     #
     # hist.buckets # => {12.0 => 0.0, 14.0 => 0.0, 16.0 => 0.0,
-    #              #     18.0 => 0.0, Infinity => 0.0}
+    # #     18.0 => 0.0, Infinity => 0.0}
     # ```
     def self.linear_buckets(start, step, bucket_count) : Array(Float64)
       ary = [] of Float64
@@ -137,7 +137,7 @@ module Crometheus
     #   buckets: Histogram.geometric_buckets(1, 2, 4))
     #
     # hist.buckets # => {1.0 => 0.0, 2.0 => 0.0, 4.0 => 0.0,
-    #              #     8.0 => 0.0, Infinity => 0.0}
+    # #     8.0 => 0.0, Infinity => 0.0}
     # ```
     def self.geometric_buckets(start, factor, bucket_count) : Array(Float64)
       ary = [] of Float64

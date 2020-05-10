@@ -6,7 +6,7 @@ module Crometheus
   # by the given value, and `count` is incremented by one.
   #
   # Quantiles are not currently supported.
-  #```
+  # ```
   # require "crometheus/summary"
   #
   # cargo_weight = Crometheus::Summary.new(
@@ -15,8 +15,8 @@ module Crometheus
   # cargo_weight.observe 12.0
   # cargo_weight.observe 10.0
   #
-  # mean_weight = cargo_weight.sum / cargo_weight.count  # => 17.0
-  #```
+  # mean_weight = cargo_weight.sum / cargo_weight.count # => 17.0
+  # ```
   class Summary < Metric
     # The total number of observations.
     getter count = 0.0
@@ -38,11 +38,11 @@ module Crometheus
     # Yields to the block, then passes the block's runtime to
     # `#observe`.
     def measure_runtime(&block)
-      t0 = Time.now
+      t0 = Time.utc
       begin
         yield
       ensure
-        t1 = Time.now
+        t1 = Time.utc
         observe((t1 - t0).to_f)
       end
     end

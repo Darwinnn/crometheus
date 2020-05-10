@@ -1,8 +1,9 @@
 name: examples
-version: 0.2.0
+version: 0.3.0
 
 authors:
   - Ezra Stevens <ezrastevens@cloudandtree.com>
+  - Darwin
 
 targets:
   wordcounter:
@@ -14,6 +15,6 @@ dependencies:
   crometheus:
     path: ../
 
-crystal: 0.23.1
+crystal: 0.34.0
 
 license: Apache 2.0
