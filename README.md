@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Darwinnn/crometheus.svg?branch=master)](https://travis-ci.org/Darwinnn/crometheus)
 # crometheus
 
 This a github fork of ezrast's [Crometheus](https://gitlab.com/ezrast/crometheus) with patches that allow it to work with the latest Crystal version (0.34.0 for now)
