@@ -28,7 +28,7 @@ module Crometheus
 
       # Substitutes `":id"` in place of numeric path components, e.g.
       # turning `"/forum/102/thread/12"` into `"/forum/:id/thread/:id"`.
-      DEFAULT_PATH_CLEANER = ->(path : String){ path.gsub(%r{/\d+(?=/|$)}, "/:id") }
+      DEFAULT_PATH_CLEANER = ->(path : String) { path.gsub(%r{/\d+(?=/|$)}, "/:id") }
 
       # Initializes the `HttpCollector`, allowing the user to set the
       # registry to which metrics will be added and the path cleaner.
@@ -36,7 +36,7 @@ module Crometheus
       # `DEFAULT_PATH_CLEANER`.
       # Set `path_cleaner` to `nil` to avoid mangling paths altogether.
       def initialize(@registry = Crometheus.default_registry,
-                     path_cleaner : (String -> String) | Nil = DEFAULT_PATH_CLEANER )
+                     path_cleaner : (String -> String) | Nil = DEFAULT_PATH_CLEANER)
         @requests = RequestCounter.new(
           :http_requests_total,
           "The total number of HTTP requests handled by the application.",
@@ -49,7 +49,7 @@ module Crometheus
           :http_request_exceptions_total,
           "The total number of exceptions raised by the application.",
           @registry)
-        @path_cleaner = path_cleaner || ->(path : String){ path }
+        @path_cleaner = path_cleaner || ->(path : String) { path }
       end
 
       # :nodoc:

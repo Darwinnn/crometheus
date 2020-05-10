@@ -1,3 +1,6 @@
+## **0.3.0** - 2020-05-10
+* Patched to work with Crystal 0.34.0
+
 ## **0.2.0** - 2017-10-02
 * New: `Crometheus::Middleware::HttpCollector` allows easy HTTP metric
   gathering.

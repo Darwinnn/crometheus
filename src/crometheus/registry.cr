@@ -50,11 +50,11 @@ module Crometheus
     # automatically in their constructors, so manual invocation is not
     # usually required.
     def register(metric)
-      if @metrics.find {|mm| mm.name == metric.name}
+      if @metrics.find { |mm| mm.name == metric.name }
         raise ArgumentError.new "Registered metrics must have unique names"
       end
       @metrics << metric
-      @metrics.sort_by! {|mm| mm.name}
+      @metrics.sort_by! { |mm| mm.name }
     end
 
     # Removes a `Metric` from the registry. The `Metric` keeps its
@@ -95,7 +95,8 @@ module Crometheus
     # Returns `false` immediately if this registry is already serving.
     def run_server
       return false if @server_on
-      @server = server = HTTP::Server.new(@host, @port, [get_handler])
+      @server = server = HTTP::Server.new(get_handler)
+      server.bind_tcp @host, @port
       @server_on = true
       begin
         server.listen
@@ -126,7 +127,7 @@ module Crometheus
             io << '_' << sample.suffix
           end
           unless sample.labels.empty?
-            io << '{' << sample.labels.map {|kk,vv| "#{kk}=\"#{vv}\""}.join(", ") << '}'
+            io << '{' << sample.labels.map { |kk, vv| "#{kk}=\"#{vv}\"" }.join(", ") << '}'
           end
           io << ' ' << Crometheus.stringify(sample.value) << '\n'
         end
@@ -148,9 +149,8 @@ module Crometheus
 
       def call(context)
         req_path = context.request.path
-        return call_next(context) if \
-          (@registry.path.is_a? String && req_path != @registry.path) ||
-          (@registry.path.is_a? Regex && req_path !~ @registry.path)
+        return call_next(context) if (@registry.path.is_a? String && req_path != @registry.path) ||
+                                     (@registry.path.is_a? Regex && req_path !~ @registry.path)
 
         context.response.content_type = "text/plain; version=0.0.4"
         @registry.generate_text_format(context.response)
@@ -159,6 +159,7 @@ module Crometheus
   end
 
   @@default_registry : Registry? = nil
+
   # Returns the default `Registry`.
   # All new `Metric` instances get registered to this by default.
   #

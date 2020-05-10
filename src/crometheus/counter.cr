@@ -5,7 +5,7 @@ module Crometheus
   # Counter is a `Metric` type that stores a single value internally.
   # This value can be reset to zero, but otherwises increases
   # monotonically, and only when `#inc` is called.
-  #```
+  # ```
   # require "crometheus/counter"
   #
   # flowers_planted = Crometheus::Counter.new(
@@ -14,7 +14,7 @@ module Crometheus
   # flowers_planted.inc
   # flowers_planted.inc
   # flowers_planted.get # => 12.0
-  #```
+  # ```
   class Counter < Metric
     @value = 0.0
 
@@ -47,7 +47,7 @@ module Crometheus
     # counter = Counter.new :example, ""
     # 100.times do
     #   begin
-    #     counter.count_exceptions {risky_code}
+    #     counter.count_exceptions { risky_code }
     #   rescue DivisionByZero
     #   end
     # end
@@ -84,6 +84,5 @@ module Crometheus
         raise ex
       end
     end
-
   end
 end

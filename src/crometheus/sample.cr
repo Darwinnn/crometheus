@@ -27,6 +27,5 @@ module Crometheus
 
     def initialize(@value, @labels = {} of Symbol => String, @suffix = "")
     end
-
   end
 end

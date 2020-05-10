@@ -13,6 +13,7 @@ end
 
 class LessSimple < Crometheus::Metric
   getter value : Float64
+
   def initialize(@name : Symbol,
                  @docstring : String,
                  @value : Float64,
@@ -43,8 +44,8 @@ describe Crometheus::Metric do
     end
 
     it "rejects unacceptable names" do
-      expect_raises(ArgumentError) {Simple.new(:"123", "")}
-      expect_raises(ArgumentError) {Simple.new(:"a&b", "")}
+      expect_raises(ArgumentError) { Simple.new(:"123", "") }
+      expect_raises(ArgumentError) { Simple.new(:"a&b", "") }
     end
   end
 
@@ -68,10 +69,7 @@ describe Crometheus::Metric do
   describe ".[]" do
     it "creates a LabeledMetric" do
       Simple[:foo, :bar].new(:x, "", nil).should be_a(
-        Crometheus::Metric::LabeledMetric(
-          NamedTuple(foo: String, bar: String),
-          Simple,
-        )
+        Crometheus::Metric::LabeledMetric(NamedTuple(foo: String, bar: String), Simple)
       )
     end
   end
@@ -148,10 +146,7 @@ Crometheus.alias MyType = Simple[:one, :two]
 describe "Crometheus.alias" do
   it "creates an alias" do
     MyType.new(:x, "", nil).should be_a(
-      Crometheus::Metric::LabeledMetric(
-        NamedTuple(one: String, two: String),
-        Simple,
-      )
+      Crometheus::Metric::LabeledMetric(NamedTuple(one: String, two: String), Simple)
     )
   end
 end

@@ -51,7 +51,7 @@ describe Crometheus::Gauge do
   describe "#measure_runtime" do
     it "sets the gauge to the runtime of a block" do
       gauge = Crometheus::Gauge.new(:x, "", nil)
-      gauge.measure_runtime {sleep 0.4}
+      gauge.measure_runtime { sleep 0.4 }
       (0.35..0.45).should contain gauge.get
     end
 
@@ -59,22 +59,21 @@ describe Crometheus::Gauge do
       gauge = Crometheus::Gauge.new(:x, "", nil)
       gauge.set 0.0
       expect_raises(CrometheusTestException) do
-        gauge.measure_runtime {sleep 0.2; raise CrometheusTestException.new}
+        gauge.measure_runtime { sleep 0.2; raise CrometheusTestException.new }
       end
       (0.2..0.25).should contain gauge.get
-
     end
   end
 
   describe "#count_concurrent" do
     it "increases the gauge while a block is running" do
       gauge = Crometheus::Gauge.new(:x, "", nil)
-      counted_sleep = ->(duration : Float64){
-        gauge.count_concurrent {sleep duration}
+      counted_sleep = ->(duration : Float64) {
+        gauge.count_concurrent { sleep duration }
       }
 
       gauge.set 0.0
-      [0.2, 0.4, 0.6].each {|duration| spawn {counted_sleep.call duration}}
+      [0.2, 0.4, 0.6].each { |duration| spawn { counted_sleep.call duration } }
       sleep 0.1
       gauge.get.should eq 3.0
       sleep 0.2
@@ -89,7 +88,7 @@ describe Crometheus::Gauge do
       gauge = Crometheus::Gauge.new(:x, "", nil)
       spawn do
         begin
-          gauge.count_concurrent {sleep 0.2; raise CrometheusTestException.new}
+          gauge.count_concurrent { sleep 0.2; raise CrometheusTestException.new }
         rescue ex : CrometheusTestException
         end
       end
@@ -97,7 +96,6 @@ describe Crometheus::Gauge do
       gauge.get.should eq 1.0
       sleep 0.2
       gauge.get.should eq 0.0
-
     end
   end
 

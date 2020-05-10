@@ -1,5 +1,7 @@
 # crometheus
 
+This a github fork of ezrast's [Crometheus](https://gitlab.com/ezrast/crometheus) with patches that allow it to work with the latest Crystal version (0.34.0 for now)
+
 [Crometheus](https://gitlab.com/ezrast/crometheus) is a [Prometheus](https://prometheus.io/) client library for instrumenting programs written in the [Crystal programming language](https://crystal-lang.org/).
 For the most part, Crometheus assumes a basic familiarity with Prometheus.
 To that end, readers may wish to skim the official documentation on Prometheus' [data model](https://prometheus.io/docs/concepts/data_model/), [metric types](https://prometheus.io/docs/concepts/metric_types/), and [text exposition format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-format-details).
@@ -15,7 +17,7 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   crometheus:
-    gitlab: ezrast/crometheus
+    github: darwinnn/crometheus
     branch: master
 ```
 
@@ -85,8 +87,7 @@ Alternately, you can just dive into the [API Documentation](https://ezrast.gitla
 
 ## Contributing
 
-0. Don't be scared; you can [use your GitHub account on GitLab](https://gitlab.com/users/sign_in) (just click on Octocat)
-1. Fork it ( https://gitlab.com/ezrast/crometheus/forks/new )
+1. Fork it
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -94,4 +95,6 @@ Alternately, you can just dive into the [API Documentation](https://ezrast.gitla
 
 ## Author
 
-- [Ezra Stevens](https://gitlab.com/ezrast) - creator, maintainer
+- [Ezra Stevens](https://gitlab.com/ezrast) - original author
+- [Darwin](https://github.com/darwinnn) - github fork and patches for Crystal 0.34.0
+

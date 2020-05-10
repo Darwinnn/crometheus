@@ -37,7 +37,7 @@ describe Crometheus::Counter do
       counter = Crometheus::Counter.new(:x, "", nil)
       10.times do |ii|
         begin
-          counter.count_exceptions {raise CrometheusTestException.new if ii % 2 == 0}
+          counter.count_exceptions { raise CrometheusTestException.new if ii % 2 == 0 }
         rescue ex : CrometheusTestException
         end
       end
@@ -47,7 +47,8 @@ describe Crometheus::Counter do
     it "re-raises the exception" do
       expect_raises(CrometheusTestException) do
         Crometheus::Counter.new(:x, "", nil).count_exceptions {
-          raise CrometheusTestException.new}
+          raise CrometheusTestException.new
+        }
       end
     end
   end
@@ -55,11 +56,11 @@ describe Crometheus::Counter do
   describe ".count_exceptions_of_type" do
     it "increment when the block raises the given type of exception" do
       counter = Crometheus::Counter.new(:x, "", nil)
-      exceptions = [CrometheusTestException.new, KeyError.new, DivisionByZero.new,
-        CrometheusTestException.new, CrometheusTestException.new]
+      exceptions = [CrometheusTestException.new, KeyError.new, DivisionByZeroError.new,
+                    CrometheusTestException.new, CrometheusTestException.new]
       exceptions.each do |ex|
-        expect_raises do
-          Crometheus::Counter.count_exceptions_of_type(counter, CrometheusTestException) {raise ex}
+        expect_raises(ex.class) do
+          Crometheus::Counter.count_exceptions_of_type(counter, CrometheusTestException) { raise ex }
         end
       end
       counter.get.should eq 3.0
@@ -73,5 +74,4 @@ describe Crometheus::Counter do
       get_samples(counter).should eq [Crometheus::Sample.new(10.0)]
     end
   end
-
 end

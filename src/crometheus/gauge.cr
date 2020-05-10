@@ -3,7 +3,7 @@ require "./metric"
 module Crometheus
   # Gauge is a `Metric` type that stores a single value internally.
   # This value can be modified freely via instance methods.
-  #```
+  # ```
   # require "crometheus/gauge"
   #
   # body_temperature = Crometheus::Gauge.new(
@@ -15,8 +15,8 @@ module Crometheus
   # # Partial recovery
   # body_temperature.dec 0.6
   #
-  # body_temperature.get  # => 99.8
-  #```
+  # body_temperature.get # => 99.8
+  # ```
   class Gauge < Metric
     @value : Float64 = 0.0
 
@@ -42,16 +42,16 @@ module Crometheus
 
     # Sets the gauge value to the current UNIX timestamp.
     def set_to_current_time
-      set Time.now.epoch_f
+      set Time.utc.to_unix_f
     end
 
     # Yields, then sets the gauge value to the block's runtime.
     def measure_runtime
-      t0 = Time.now
+      t0 = Time.utc
       begin
         yield
       ensure
-        t1 = Time.now
+        t1 = Time.utc
         set((t1 - t0).to_f)
       end
     end
