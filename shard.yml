@@ -5,6 +5,6 @@ authors:
   - Ezra Stevens <ezrastevens@cloudandtree.com>
   - Darwin
 
-crystal: 0.34.0
+crystal: 0.35.1
 
 license: Apache 2.0

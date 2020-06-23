@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/Darwinnn/crometheus.svg?branch=master)](https://travis-ci.org/Darwinnn/crometheus)
 # crometheus
 
-This a github fork of ezrast's [Crometheus](https://gitlab.com/ezrast/crometheus) with patches that allow it to work with the latest Crystal version (0.34.0 for now)
+This a github fork of ezrast's [Crometheus](https://gitlab.com/ezrast/crometheus) with patches that allow it to work with the latest Crystal version (0.35.1 for now)
 
 [Crometheus](https://gitlab.com/ezrast/crometheus) is a [Prometheus](https://prometheus.io/) client library for instrumenting programs written in the [Crystal programming language](https://crystal-lang.org/).
 For the most part, Crometheus assumes a basic familiarity with Prometheus.

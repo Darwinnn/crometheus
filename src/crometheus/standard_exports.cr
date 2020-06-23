@@ -37,7 +37,7 @@ module Crometheus
       def initialize(name : Symbol,
                      docstring : String,
                      register_with : Crometheus::Registry? = Crometheus.default_registry,
-                     @pid = Process.pid,
+                     @pid : Int64 = Process.pid,
                      @procfs = "/proc")
         super(name, docstring, register_with)
       end

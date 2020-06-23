@@ -1,3 +1,6 @@
+## **0.3.1** - 2020-06-23
+* Updated for Crystal 0.35.1
+
 ## **0.3.0** - 2020-05-10
 * Patched to work with Crystal 0.34.0
 
