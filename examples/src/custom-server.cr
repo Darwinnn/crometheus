@@ -11,11 +11,11 @@ metrics_handler = Crometheus.default_registry.get_handler
 Crometheus.default_registry.path = "/metrics"
 summary = Crometheus::Summary.new(:manual_values, "values entered via web ui")
 
-server = HTTP::Server.new("localhost", 3000, [HTTP::CompressHandler.new,
-                                              HTTP::LogHandler.new,
-                                              HTTP::ErrorHandler.new(true),
-                                              Crometheus::Middleware::HttpCollector.new,
-                                              metrics_handler]) do |context|
+server = HTTP::Server.new([HTTP::CompressHandler.new,
+                           HTTP::LogHandler.new,
+                           HTTP::ErrorHandler.new(true),
+                           Crometheus::Middleware::HttpCollector.new,
+                           metrics_handler]) do |context|
   if "/" == context.request.path
     if val = context.request.body.try &.gets_to_end
       val =~ /value=(.+)/
@@ -29,7 +29,8 @@ server = HTTP::Server.new("localhost", 3000, [HTTP::CompressHandler.new,
   end
 end
 
-puts "Launching server at http://localhost:3000"
+address = server.bind_tcp "localhost", 3000
+puts "Launching server at http://#{address}"
 puts "Press Ctrl+C to exit"
 server.listen
 
