@@ -24,7 +24,7 @@ module Crometheus
     getter sum = 0.0
 
     # Increments `count` by one and `sum` by `value`.
-    def observe(value : Int | Float)
+    def observe(value : Int8 | Int16 | Int32 | Int64 | Int128 | Float32 | Float64)
       @count += 1.0
       @sum += value.to_f64
     end
