@@ -19,7 +19,7 @@ module Crometheus
   # ```
   struct Sample
     property suffix : String
-    property value : Float64 | Int64
+    property value : Float64 | Int64 | Int32
     property labels : Hash(Symbol, String)
 
     # property timestamp : Int64?
