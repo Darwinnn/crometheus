@@ -11,9 +11,9 @@ module Crometheus
   # `to_s` on the result.
   def self.stringify(ff : Float64 | Int64) : String | Float64 | Int64
     case ff
-    when Float64::INFINITY | Int64::INFINITY
+    when Float64::INFINITY | Int64::MAX
       "+Inf"
-    when -Float64::INFINITY | -Int64::INFINITY
+    when -Float64::INFINITY | -Int64::MAX
       "-Inf"
     when ff
       ff
