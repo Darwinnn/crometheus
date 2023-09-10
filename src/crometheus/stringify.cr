@@ -9,7 +9,7 @@ module Crometheus
   # allocations in use cases like `io << stringify(my_float)`.
   # If you want a guaranteed String returned you'll still need to use
   # `to_s` on the result.
-  def self.stringify(ff : Float64 | Int64 | Int32) : String | Float64 | Int64
+  def self.stringify(ff : Float64 | Int64 | Int32) : String | Float64 | Int64 | Int32
     case ff
     when Float64::INFINITY || Int64::MAX || Int32::MAX
       "+Inf"
