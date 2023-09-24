@@ -152,7 +152,8 @@ module Crometheus
         return call_next(context) if (@registry.path.is_a? String && req_path != @registry.path) ||
                                      (@registry.path.is_a? Regex && req_path !~ @registry.path)
 
-        context.response.content_type = "text/plain; version=0.0.4"
+        # set utf-8 encoding
+        context.response.content_type = "text/plain; version=0.2.1; charset=utf-8"
         @registry.generate_text_format(context.response)
       end
     end
